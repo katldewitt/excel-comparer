@@ -15,6 +15,6 @@ namespace Compare_excel_library.Data_Structures
     public class OutDataStruct
     {
         public string Key { get; set; }
-        public Dictionary<string, OData> Data  = new Dictionary<string, OData>();//{ get; set; }
+        public Dictionary<string, OData> Data  = new Dictionary<string, OData>();
     }
 }

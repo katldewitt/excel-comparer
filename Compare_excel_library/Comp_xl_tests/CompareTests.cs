@@ -1,11 +1,12 @@
 using Compare_excel_library.Compare_Methods;
 using Compare_excel_library.Data_Structures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace Comp_xl_tests
 {
     [TestClass]
-    public class UnitTest1
+    public class ComparerTests
     {
         #region Test Datum
         static string testKey = "testKey";
@@ -14,11 +15,14 @@ namespace Comp_xl_tests
         Datum datumBool = new Datum(testKey, true);
         Datum datumString = new Datum(testKey, "stringy");
         Datum datumStringChanged = new Datum(testKey, "strongy");
-        //TODO: test float Datum numericFloat = new Datum(testKey, float(12));
+        Datum datumDateTimeToday = new Datum(testKey, DateTime.Today);
+        Datum datumDateTimeTomorrow = new Datum(testKey, DateTime.Today.AddDays(1));
+        Datum numericFloat = new Datum(testKey, 134.45E-2f);
+        Datum numericDecimal = new Datum(testKey, 1.5E6m);
 
         #endregion
         
-        private void CommonAssertionsForComparison(Datum orig, Datum comp, OData result)
+        private void CommonAssertionsForComparison(Datum? orig, Datum? comp, OData result)
         {
             Assert.AreEqual(orig, result.original);
             Assert.AreEqual(comp, result.newer);
@@ -71,13 +75,12 @@ namespace Comp_xl_tests
         }
 
         [TestMethod]
-        public void Compare_selfFlot()
+        public void Compare_selfFloat()
         {
-            //TODO: implement
-            //OData result = Comparer.Compare(numericInt, numericInt);
-            //CommonAssertionsForComparison(numericInt, numericInt, result);
-            //Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
-            //Assert.AreEqual(0, result.delta.DeltaValue);
+             OData result = Comparer.Compare(numericFloat, numericFloat);
+            CommonAssertionsForComparison(numericFloat, numericFloat, result);
+            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
+            Assert.AreEqual(0, result.delta.DeltaValue);
         }
 
         [TestMethod]
@@ -85,6 +88,24 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(numericDouble, numericDouble);
             CommonAssertionsForComparison(numericDouble, numericDouble, result);
+            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
+            Assert.AreEqual(0, result.delta.DeltaValue);
+        }
+
+        [TestMethod]
+        public void Compare_selfDate()
+        {
+            OData result = Comparer.Compare(datumDateTimeToday, datumDateTimeToday);
+            CommonAssertionsForComparison(datumDateTimeToday, datumDateTimeToday, result);
+            Assert.AreEqual(DeltaType.DATE, result.delta.DeltaType);
+            Assert.AreEqual(0, result.delta.DeltaValue);
+        }
+
+        [TestMethod]
+        public void Compare_selfDecimal()
+        {
+            OData result = Comparer.Compare(numericDecimal, numericDecimal);
+            CommonAssertionsForComparison(numericDecimal, numericDecimal, result);
             Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
             Assert.AreEqual(0, result.delta.DeltaValue);
         }
@@ -140,6 +161,15 @@ namespace Comp_xl_tests
             CommonAssertionsForComparison(datumString, datumStringChanged, result);
             Assert.AreEqual(DeltaType.STRING, result.delta.DeltaType);
             Assert.AreEqual(1, result.delta.DeltaValue);
+        }
+
+        [TestMethod]
+        public void Compare_TwoDates()
+        {
+            OData result = Comparer.Compare(datumDateTimeToday, datumDateTimeTomorrow);
+            CommonAssertionsForComparison(datumDateTimeToday, datumDateTimeTomorrow, result);
+            Assert.AreEqual(DeltaType.DATE, result.delta.DeltaType);
+            Assert.AreEqual(-1, result.delta.DeltaValue, "Failure. Today [orig] should be earlier than tomorrow [comp]");
         }
         #endregion
 
