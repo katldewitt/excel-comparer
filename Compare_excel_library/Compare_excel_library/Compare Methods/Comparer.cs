@@ -16,6 +16,13 @@ namespace Compare_excel_library.Compare_Methods
             DeltaValue = int.MaxValue
         };
 
+        /// <summary>
+        /// Compare two Datums to identify deltas and comparison type. Can handle null values in one or both inputs
+        /// </summary>
+        /// <param name="orig">The original datum</param>
+        /// <param name="comp">The datum to which we are comparing</param>
+        /// <returns>an OData </returns>
+        /// <exception cref="NotImplementedException"></exception>
         public static OData Compare(Datum? orig, Datum? comp)
         {
 

@@ -15,13 +15,30 @@ namespace Compare_excel_library.Compare_Methods
         private List<OutDataStruct> inBoth = new List<OutDataStruct>();
 
         /// <summary>
-        /// Assumes that there is a KEY for each row. TODO: if doing aboslute comparison is the KEY just the row #?
+        /// Compares two Lists of IndataStruct for differences. Assumes that there is a unique KEY for each row. 
         /// </summary>
         /// <param name="original"></param>
         /// <param name="comparison"></param>
-        /// <returns></returns>
+        /// <returns>the entire comparisonResult (regardless of whether merged or not)</returns>
         public List<OutDataStruct> ConductComparisons(List<InDataStruct> original, List<InDataStruct> comparison)
         {
+            //Step 0. Validate data:
+            //Verify at least 1 item to compare
+            if (original.Count == 0 && comparison.Count == 0)
+            {
+                throw new IOException("Fatal Error. Both original and comparison are empty");
+            }
+
+            //Verify the unique key assumption
+            if (original.Select(x => x.Key).Distinct().Count() != original.Count())
+            {
+                throw new DataMisalignedException("Fatal Error. The original input does not meet the unique key assumption");
+            }
+            if (comparison.Select(x => x.Key).Distinct().Count() != comparison.Count())
+            {
+                throw new DataMisalignedException("Fatal Error. The comparison input does not meet the unique key assumption");
+            }
+
             //Step 1. Find rows in both or only in original:
             foreach (InDataStruct orig in original)
             {
@@ -66,13 +83,12 @@ namespace Compare_excel_library.Compare_Methods
                 {
                     continue;
                 }
-                
+
                 OutDataStruct resultComparsion = new OutDataStruct();
 
                 //2.2 if there is no row with the same values in orig, generate an empty comparison
                 foreach (var item in comp.Data)
                 {
-
                     //2.2.1 call the comparer
                     OData compResult = Comparer.Compare(null, item.Value);
                     //2.2.2: add back to final result
@@ -82,55 +98,116 @@ namespace Compare_excel_library.Compare_Methods
 
             } //End foreach of comp
 
-            comparisonResult = new List<OutDataStruct>();
-            //TODO: append vs addrange?
+            //Return the aggregate of the comparisons
             comparisonResult.AddRange(this.inBoth);
             comparisonResult.AddRange(this.inCompNotOrig);
-                comparisonResult.AddRange(this.inOrigNotComp);
+            comparisonResult.AddRange(this.inOrigNotComp);
             return comparisonResult;
         }
 
 
         public List<OutDataStruct> InBoth()
         {
-            if (comparisonResult.Count() == 0)
-            {
-                throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
-            }
+            CheckComparisonConductedFirst();
 
             return inBoth;
         }
         public List<OutDataStruct> InCompNotOrig()
         {
-            if (comparisonResult.Count() == 0)
-            {
-                throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
-            }
+            CheckComparisonConductedFirst();
 
             return inCompNotOrig;
         }
 
         public List<OutDataStruct> InOrigNotComp()
         {
-            if (comparisonResult.Count() == 0)
-            {
-                throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
-            }
+            CheckComparisonConductedFirst();
 
             return inOrigNotComp;
         }
 
         public List<OutDataStruct> InSource()
         {
-            if (true || comparisonResult.Count() == 0)
-            {
-                throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
-            }
+            CheckComparisonConductedFirst();
 
-            return null; //TODO: get both inBoth and inOrigNotComp inBoth.Concat(inOrigNotComp);
+            //get both inBoth and inOrigNotComp since both of these were in the source
+            List<OutDataStruct> result = new List<OutDataStruct>();
+            result.AddRange(inBoth);
+            result.AddRange(inOrigNotComp);
+            return result;
         }
 
-        public void MergeStatistics()
+        public List<OutDataStruct> InComparison()
+        {
+            CheckComparisonConductedFirst();
+
+            //get both inBoth and inCompNotOrig since both of these were in the comp
+            List<OutDataStruct> result = new List<OutDataStruct>();
+            result.AddRange(inBoth);
+            result.AddRange(inCompNotOrig);
+            return result;
+        }
+
+        /// <summary>
+        /// Prints out a table of keys that were only in the comparison
+        /// </summary>
+        public void PrintKeysOnlyInComp()
+        {
+            CheckComparisonConductedFirst();
+            PrintKeys("Comparison", inCompNotOrig);
+        }
+
+        /// <summary>
+        ///  Prints out a table of keys that were only in the comparison
+        /// </summary>
+        public void PrintKeysOnlyInOrig()
+        {
+            CheckComparisonConductedFirst();
+            PrintKeys("Original", inOrigNotComp);
+        }
+
+        private void PrintKeys(string grouping, List<OutDataStruct> listing)
+        {
+
+            ///
+            /// |----------------------------------|
+            /// | Keys only in {Grouping}          | 
+            /// |                                  | 
+            /// | Key1                             |  
+            /// | Key112357465165768               |  
+            /// | Key9999999999999999999999999     | 
+            /// |----------------------------------|
+            ///
+
+            //Define constants for printing
+            int NUM_ITEMS = 1;
+            int ADDITIONAL_CHARS_IN_ALIGNED_TXT = 0;
+
+            if (listing.Count == 0)
+            {
+                string Header = $"There are no items that were only in {grouping}";
+                PrintDividingLine(Header.Length, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+                Console.WriteLine(Header);
+                PrintDividingLine(Header.Length, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+            }
+            else
+            {
+                string Header = $"Keys only in {grouping}";
+                List<string> keysToPrint = listing.Select(x => x.Key).ToList();
+                int maxLength = Math.Max(keysToPrint.Max(x => x.Length), Header.Length);
+
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+                Console.WriteLine(PrintAlignedText(Header, maxLength));
+                foreach (string item in keysToPrint)
+                {
+                    Console.WriteLine(PrintAlignedText(item, maxLength));
+                }
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+
+            }
+        }
+
+        public void PrintMergeStatistics()
         {
             ///
             /// |----------------------------------|
@@ -142,27 +219,57 @@ namespace Compare_excel_library.Compare_Methods
             /// |----------------------------------|
             ///
 
-            int inSourceOnly = inOrigNotComp.Count();
-            int inCompOnly = inCompNotOrig.Count();
-            int inBothCount = inBoth.Count();
-            int sumComparisons = (inSourceOnly + inCompOnly + inBothCount);
+            double inSourceOnly = inOrigNotComp.Count();
+            double inCompOnly = inCompNotOrig.Count();
+            double inBothCount = inBoth.Count();
+            double sumComparisons = (inSourceOnly + inCompOnly + inBothCount);
 
             if (sumComparisons != comparisonResult.Count())
             {
-                throw new DataMisalignedException("Fatal error. Merge should be exact");
+                throw new DataMisalignedException("Fatal error. Merge should be 1:1");
             }
 
-            //TODO: alignment of text based on numbers
-            Console.WriteLine("|----------------------------------|");
-            Console.WriteLine("| Location       | COUNT | CULM PERCENT |");
-            Console.WriteLine("|----------------------------------|");
-            Console.WriteLine($"| In Source Only | {inSourceOnly} | {inSourceOnly / sumComparisons} |");
-            Console.WriteLine($"| In Comp Only   | {inCompOnly} | {inCompOnly / sumComparisons} |");
-            Console.WriteLine($"| In Both        | {inBothCount} | {inBothCount / sumComparisons} |");
-            Console.WriteLine("|----------------------------------|");
+            //Determine max length of counts to compare to longest string used in table
+            int maxLength = Math.Max(sumComparisons.ToString().Length, "In Source Only".Length);
+            ////Define constants for formatting
+            int NUM_ITEMS = 3;
+            int ADDITIONAL_CHARS_IN_ALIGNED_TXT = 6;
+            PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+            Console.WriteLine(PrintAlignedText("Location", "COUNT", "CULM PERCENT", maxLength));
+            PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+            Console.WriteLine(PrintAlignedText("In Source Only", inSourceOnly.ToString(), String.Format("{0:0.##}", inSourceOnly / sumComparisons), maxLength));
+            Console.WriteLine(PrintAlignedText("In Comp Only", inCompOnly.ToString(), String.Format("{0:0.##}", inCompOnly / sumComparisons), maxLength));
+            Console.WriteLine(PrintAlignedText("In Both", inBothCount.ToString(), String.Format("{0:0.##}", inBothCount / sumComparisons), maxLength));
+            PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
 
         }
 
-        //TODO: merge results/analytics
+        private string PrintAlignedText(string item1, int maxLength)
+        {
+            string toFormat = "|{0, []}|".Replace("[]", maxLength.ToString());
+            return String.Format(toFormat, item1);
+
+        }
+
+        private string PrintAlignedText(string item1, string item2, string item3, int maxLength)
+        {
+            string toFormat = "|{0, []} | {1, []} | {2, []}|".Replace("[]", maxLength.ToString());
+            return String.Format(toFormat, item1, item2, item3);
+
+        }
+        private void PrintDividingLine(int maxLength, int NUM_ITEMS, int ADDITIONAL_CHARS_IN_ALIGNED_TXT)
+        {
+
+
+            Console.WriteLine("|" + new string('-', maxLength * NUM_ITEMS + ADDITIONAL_CHARS_IN_ALIGNED_TXT) + "|");
+        }
+
+        private void CheckComparisonConductedFirst()
+        {
+            if (comparisonResult.Count() == 0)
+            {
+                throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
+            }
+        }
     }
 }
