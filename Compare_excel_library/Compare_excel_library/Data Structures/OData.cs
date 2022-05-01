@@ -8,6 +8,7 @@ namespace Compare_excel_library.Data_Structures
 {
     public class OData
     {
+        //Basic constuctor
         public OData()
         {
         }
@@ -15,13 +16,12 @@ namespace Compare_excel_library.Data_Structures
         /// <summary>
         /// The uniquely identified key of the column from which the datum is derived.
         /// </summary>
-        /// 
-        public string colKey { get; set; }
+        public string? colKey { get; set; }
 
         public Source_Comparison Source { get; set; }
-        public Datum original { get; set; }
-        public Datum newer { get; set; }
-        public Delta delta { get; set; }
+        public Datum? original { get; set; }
+        public Datum? newer { get; set; }
+        public Delta? delta { get; set; }
 
     }
 

@@ -10,15 +10,15 @@ namespace Comp_xl_tests
     {
         #region Test Datum
         static string testKey = "testKey";
-        Datum numericInt = new Datum(testKey, 123);
-        Datum numericDouble = new Datum(testKey, 1.23);
-        Datum datumBool = new Datum(testKey, true);
-        Datum datumString = new Datum(testKey, "stringy");
-        Datum datumStringChanged = new Datum(testKey, "strongy");
-        Datum datumDateTimeToday = new Datum(testKey, DateTime.Today);
-        Datum datumDateTimeTomorrow = new Datum(testKey, DateTime.Today.AddDays(1));
-        Datum numericFloat = new Datum(testKey, 134.45E-2f);
-        Datum numericDecimal = new Datum(testKey, 1.5E6m);
+        readonly Datum numericInt = new Datum(testKey, 123);
+        readonly Datum numericDouble = new Datum(testKey, 1.23);
+        readonly Datum datumBool = new Datum(testKey, true);
+        readonly Datum datumString = new Datum(testKey, "stringy");
+        readonly Datum datumStringChanged = new Datum(testKey, "strongy");
+        readonly Datum datumDateTimeToday = new Datum(testKey, DateTime.Today);
+        readonly Datum datumDateTimeTomorrow = new Datum(testKey, DateTime.Today.AddDays(1));
+        readonly Datum numericFloat = new Datum(testKey, 134.45E-2f);
+        readonly Datum numericDecimal = new Datum(testKey, 1.5E6m);
 
         #endregion
         

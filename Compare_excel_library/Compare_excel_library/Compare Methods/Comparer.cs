@@ -86,8 +86,6 @@ namespace Compare_excel_library.Compare_Methods
                             break;
                         default:
                             throw new NotImplementedException($"Comparison of type {orig.Type} is not yet implemented");
-                            result.delta = Uncomparable;
-                            break;
                     }
                 }
             }
