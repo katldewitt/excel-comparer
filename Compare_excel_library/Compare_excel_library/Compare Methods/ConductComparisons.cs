@@ -44,7 +44,7 @@ namespace Compare_excel_library.Compare_Methods
             {
                 //1.1 Get those with the same key (if they exist) from comparison
                 InDataStruct? comp = comparison.SingleOrDefault(x => x.Key == orig.Key);
-                OutDataStruct resultComparsion = new OutDataStruct();
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key};
                 if (comp != null)
                 {
                     //1.1.1 Iterate through all the columns from orig
@@ -79,12 +79,12 @@ namespace Compare_excel_library.Compare_Methods
             foreach (InDataStruct comp in comparison)
             {
                 //2.1 Short circuit: don't need to deal to process cases that were in both (and therefore in the results)
-                if (inBoth.Any(x => x.Data.ContainsKey(comp.Key)))
+                if (inBoth.Any(x => x.Key == comp.Key))
                 {
                     continue;
                 }
 
-                OutDataStruct resultComparsion = new OutDataStruct();
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = comp.Key };
 
                 //2.2 if there is no row with the same values in orig, generate an empty comparison
                 foreach (var item in comp.Data)
@@ -198,6 +198,7 @@ namespace Compare_excel_library.Compare_Methods
 
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
                 Console.WriteLine(PrintAlignedText(Header, maxLength));
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
                 foreach (string item in keysToPrint)
                 {
                     Console.WriteLine(PrintAlignedText(item, maxLength));
@@ -206,6 +207,8 @@ namespace Compare_excel_library.Compare_Methods
 
             }
         }
+
+
 
         public void PrintMergeStatistics()
         {
