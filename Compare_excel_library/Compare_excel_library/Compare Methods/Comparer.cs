@@ -78,7 +78,7 @@ namespace Compare_excel_library.Compare_Methods
                             result.delta = CompareDate(orig, comp);
                             break;
                         default:
-                            //TODO: exception?
+                            throw new NotImplementedException($"Comparison of type {orig.Type} is not yet implemented");
                             result.delta = Uncomparable;
                             break;
                     }
@@ -173,7 +173,7 @@ namespace Compare_excel_library.Compare_Methods
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        /// <returns></returns>
+        /// <returns>an int representing the distance between strings</returns>
         private static int CalcLevenshteinDistance(string a, string b)
         {
             //Two strings are the same if they are both ""
