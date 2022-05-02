@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Compare_excel_library.Compare_Methods
 {
-    public class ComparisonDriver
+    public class ConductComparisons
     {
         private List<OutDataStruct> comparisonResult = new List<OutDataStruct>();
         private List<OutDataStruct> inOrigNotComp = new List<OutDataStruct>();
@@ -20,7 +20,7 @@ namespace Compare_excel_library.Compare_Methods
         /// <param name="original"></param>
         /// <param name="comparison"></param>
         /// <returns>the entire comparisonResult (regardless of whether merged or not)</returns>
-        public List<OutDataStruct> ConductComparisons(List<InDataStruct> original, List<InDataStruct> comparison)
+        public ConductComparisons(List<InDataStruct> original, List<InDataStruct> comparison)
         {
             //Step 0. Validate data:
             //Verify at least 1 item to compare
@@ -44,7 +44,7 @@ namespace Compare_excel_library.Compare_Methods
             {
                 //1.1 Get those with the same key (if they exist) from comparison
                 InDataStruct? comp = comparison.SingleOrDefault(x => x.Key == orig.Key);
-                OutDataStruct resultComparsion = new OutDataStruct();
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key };
                 if (comp != null)
                 {
                     //1.1.1 Iterate through all the columns from orig
@@ -58,6 +58,22 @@ namespace Compare_excel_library.Compare_Methods
                         //1.1.4: add back to final result
                         resultComparsion.Data[item.Key] = compResult;
                     }
+
+                    //1.1.5 Iterate through the remaining columns from comp
+                    foreach (var item in comp.Data)
+                    {
+                        //1.1.6 Short circuit: don't need to process columns that were in both (and therefore in the results already)
+                        if (resultComparsion.Data.ContainsKey(item.Key))
+                        {
+                            continue;
+                        }
+
+                        //1.1.7 call the comparer
+                        OData compResult = Comparer.Compare(null, item.Value);
+                        //1.1.4: add back to final result
+                        resultComparsion.Data[item.Key] = compResult;
+                    }
+
                     this.inBoth.Add(resultComparsion);
                 }
                 else
@@ -78,13 +94,13 @@ namespace Compare_excel_library.Compare_Methods
             //Step 2. Find rows in comparison:
             foreach (InDataStruct comp in comparison)
             {
-                //2.1 Short circuit: don't need to deal to process cases that were in both (and therefore in the results)
-                if (inBoth.Any(x => x.Data.ContainsKey(comp.Key)))
+                //2.1 Short circuit: don't need to process rows that were in both (and therefore in the results)
+                if (inBoth.Any(x => x.Key == comp.Key))
                 {
                     continue;
                 }
 
-                OutDataStruct resultComparsion = new OutDataStruct();
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = comp.Key };
 
                 //2.2 if there is no row with the same values in orig, generate an empty comparison
                 foreach (var item in comp.Data)
@@ -102,7 +118,6 @@ namespace Compare_excel_library.Compare_Methods
             comparisonResult.AddRange(this.inBoth);
             comparisonResult.AddRange(this.inCompNotOrig);
             comparisonResult.AddRange(this.inOrigNotComp);
-            return comparisonResult;
         }
 
 
@@ -158,7 +173,7 @@ namespace Compare_excel_library.Compare_Methods
         }
 
         /// <summary>
-        ///  Prints out a table of keys that were only in the comparison
+        ///  Prints out a table of keys that were only in the original
         /// </summary>
         public void PrintKeysOnlyInOrig()
         {
@@ -168,16 +183,13 @@ namespace Compare_excel_library.Compare_Methods
 
         private void PrintKeys(string grouping, List<OutDataStruct> listing)
         {
-
-            ///
             /// |----------------------------------|
             /// | Keys only in {Grouping}          | 
-            /// |                                  | 
+            /// |----------------------------------|
             /// | Key1                             |  
             /// | Key112357465165768               |  
             /// | Key9999999999999999999999999     | 
             /// |----------------------------------|
-            ///
 
             //Define constants for printing
             int NUM_ITEMS = 1;
@@ -197,27 +209,28 @@ namespace Compare_excel_library.Compare_Methods
                 int maxLength = Math.Max(keysToPrint.Max(x => x.Length), Header.Length);
 
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
-                Console.WriteLine(PrintAlignedText(Header, maxLength));
+                Console.WriteLine(PrintAlignedText(new List<string>(){ Header}, maxLength));
                 foreach (string item in keysToPrint)
                 {
-                    Console.WriteLine(PrintAlignedText(item, maxLength));
+                    Console.WriteLine(PrintAlignedText(new List<string>() { item }, maxLength));
                 }
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
-
             }
         }
 
+        /// <summary>
+        /// Provide a summary of how many items merged, how many items were only in comparison, and how many were only in source.
+        /// </summary>
+        /// <exception cref="DataMisalignedException"></exception>
         public void PrintMergeStatistics()
         {
-            ///
             /// |----------------------------------|
-            /// | Location       | COUNT | PERCENT | 
-            /// |                                  | 
+            /// | Location       | COUNT | PERCENT |            
+            /// |----------------------------------|
             /// | In Source Only | COUNT | PERCENT | 
             /// | In Comp Only   | COUNT | PERCENT | 
             /// | In Both        | COUNT | PERCENT |
             /// |----------------------------------|
-            ///
 
             double inSourceOnly = inOrigNotComp.Count();
             double inCompOnly = inCompNotOrig.Count();
@@ -231,36 +244,47 @@ namespace Compare_excel_library.Compare_Methods
 
             //Determine max length of counts to compare to longest string used in table
             int maxLength = Math.Max(sumComparisons.ToString().Length, "In Source Only".Length);
-            ////Define constants for formatting
+
+            //Define constants for formatting
             int NUM_ITEMS = 3;
             int ADDITIONAL_CHARS_IN_ALIGNED_TXT = 6;
+
             PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
-            Console.WriteLine(PrintAlignedText("Location", "COUNT", "CULM PERCENT", maxLength));
+            Console.WriteLine(PrintAlignedText(new List<string>() { "Location", "COUNT", "CULM PERCENT" }, maxLength));
             PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
-            Console.WriteLine(PrintAlignedText("In Source Only", inSourceOnly.ToString(), String.Format("{0:0.##}", inSourceOnly / sumComparisons), maxLength));
-            Console.WriteLine(PrintAlignedText("In Comp Only", inCompOnly.ToString(), String.Format("{0:0.##}", inCompOnly / sumComparisons), maxLength));
-            Console.WriteLine(PrintAlignedText("In Both", inBothCount.ToString(), String.Format("{0:0.##}", inBothCount / sumComparisons), maxLength));
+            Console.WriteLine(PrintAlignedText(new List<string>() { "In Source Only", inSourceOnly.ToString(), String.Format("{0:0.##}", inSourceOnly / sumComparisons) }, maxLength));
+            Console.WriteLine(PrintAlignedText(new List<string>() { "In Comp Only", inCompOnly.ToString(), String.Format("{0:0.##}", inCompOnly / sumComparisons) }, maxLength));
+            Console.WriteLine(PrintAlignedText(new List<string>() { "In Both", inBothCount.ToString(), String.Format("{0:0.##}", inBothCount / sumComparisons) }, maxLength));
             PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
 
         }
 
-        private string PrintAlignedText(string item1, int maxLength)
-        {
-            string toFormat = "|{0, []}|".Replace("[]", maxLength.ToString());
-            return String.Format(toFormat, item1);
 
-        }
-
-        private string PrintAlignedText(string item1, string item2, string item3, int maxLength)
+        private string PrintAlignedText(List<string> itemsToFormat, int maxLength)
         {
-            string toFormat = "|{0, []} | {1, []} | {2, []}|".Replace("[]", maxLength.ToString());
-            return String.Format(toFormat, item1, item2, item3);
+            StringBuilder sb = new StringBuilder("|");
+            int counter = 0;
+            foreach (var item in itemsToFormat)
+            {
+                //Becomes |{0, maxLength} | {1, maxLength} | ... | {N, maxLength}|
+                sb.Append("{" + counter + ", " + maxLength + "}");
+                if (counter != itemsToFormat.Count - 1)
+                {
+                    sb.Append(" | ");
+                }
+                else
+                {
+                    sb.Append("|");
+                }
+                counter++;
+            }
+
+            //Becomes |     item 1 |    item 2 | ... |       item N|
+            return String.Format(sb.ToString(), itemsToFormat.ToArray());
 
         }
         private void PrintDividingLine(int maxLength, int NUM_ITEMS, int ADDITIONAL_CHARS_IN_ALIGNED_TXT)
         {
-
-
             Console.WriteLine("|" + new string('-', maxLength * NUM_ITEMS + ADDITIONAL_CHARS_IN_ALIGNED_TXT) + "|");
         }
 
