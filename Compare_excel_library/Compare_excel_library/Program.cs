@@ -12,8 +12,7 @@ ExcelReader er = new ExcelReader();
 List<InDataStruct> orig = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\original.xlsx");
 List<InDataStruct> comp = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\comparison.xlsx");
 //DONE-ish: Comparisons inner workings
-ComparisonDriver cd = new ComparisonDriver();
-List<OutDataStruct> od = cd.ConductComparisons(orig, comp);
+ConductComparisons cd = new ConductComparisons(orig, comp);
 cd.PrintMergeStatistics();
 cd.PrintKeysOnlyInComp();
 cd.PrintKeysOnlyInOrig();
