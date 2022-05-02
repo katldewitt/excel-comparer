@@ -1,6 +1,8 @@
 # excel-comparer
 A set of methods to compare two excels (.xlsx) that expand on existing excel comparisons.
 
+[![.NET](https://github.com/katldewitt/excel-comparer/actions/workflows/dotnet.yml/badge.svg)](https://github.com/katldewitt/excel-comparer/actions/workflows/dotnet.yml)
+
 ## Problem
 
 At the highest level, this project tries to solve problems created by lacking version control when making changes to excel books. Excel spreadsheets are not databases, but many organizations rely on spreadsheets to track, update, and excecute on operations. By creating the ability to quickly understand how spreadsheets differ based on a unique key, this project assists end users to reconcile and make decisions.
