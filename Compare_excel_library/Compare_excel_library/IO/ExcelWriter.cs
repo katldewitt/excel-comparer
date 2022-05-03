@@ -43,23 +43,13 @@ namespace Compare_excel_library.IO
                 int row = 1;
                 foreach (OutDataStruct item in _cd.InBoth())
                 {
-                    int col = 1;
-
                     if (row == 1)
                     {
-                        ws.Cells[row, col].Value = "KEY";
-                        col++;
-                        //TODO: Set up the headers
-                        foreach (var dat in item.Data.Values)
-                        {
-                            ws.Cells[row, col].Value = dat.colKey;
-                            col++;
-                        }
-                        ws.Cells[row, col].Value = "Source";
+                        SetUpHeaders(ws, item);
                         row++;
                     }
 
-                    col = 1;
+                    int col = 1;
                     ws.Cells[row, col].Value = item.Key;
                     col++;
                     foreach (var dat in item.Data)
@@ -95,6 +85,21 @@ namespace Compare_excel_library.IO
 
         }
 
+        private void SetUpHeaders(ExcelWorksheet ws, OutDataStruct ods)
+        {
+            int row = 1;
+            int col = 1;
+            ws.Cells[row, col].Value = "KEY";
+            col++;
+            //TODO: Set up the headers
+            foreach (var dat in ods.Data.Values)
+            {
+                ws.Cells[row, col].Value = dat.colKey;
+                col++;
+            }
+            ws.Cells[row, col].Value = "Source";
+        }
+
         private void WriteInSourceOnly(ExcelPackage eppackage)
         {
             ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add("Only In Source");
@@ -104,22 +109,14 @@ namespace Compare_excel_library.IO
                 int row = 1;
                 foreach (OutDataStruct item in _cd.InOrigNotComp())
                 {
-                    int col = 1;
-
                     if (row == 1)
                     {
-                        ws.Cells[row, col].Value = "KEY";
-                        col++;
-                        //TODO: Set up the headers
-                        foreach (var dat in item.Data.Values)
-                        {
-                            ws.Cells[row, col].Value = dat.colKey;
-                            col++;
-                        }
-                        ws.Cells[row, col].Value = "Source";
+                        SetUpHeaders(ws, item);
                         row++;
                     }
-                    col = 1;
+
+                    int col = 1;
+
                     ws.Cells[row, col].Value = item.Key;
                     col++;
                     foreach (var dat in item.Data)
@@ -145,22 +142,13 @@ namespace Compare_excel_library.IO
                 int row = 1;
                 foreach (OutDataStruct item in _cd.InCompNotOrig())
                 {
-                    int col = 1;
-
                     if (row == 1)
                     {
-                        ws.Cells[row, col].Value = "KEY";
-                        col++;
-                        //TODO: Set up the headers across types (ordering changes since not all columns are present)
-                        foreach (var dat in item.Data.Values)
-                        {
-                            ws.Cells[row, col].Value = dat.colKey;
-                            col++;
-                        }
-                        ws.Cells[row, col].Value = "Source";
+                        SetUpHeaders(ws, item);
                         row++;
                     }
-                    col = 1;
+
+                    int col = 1;
                     ws.Cells[row, col].Value = item.Key;
                     col++;
                     foreach (var dat in item.Data)
