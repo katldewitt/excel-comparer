@@ -14,13 +14,16 @@ namespace Compare_excel_library.Compare_Methods
         private List<OutDataStruct> inCompNotOrig = new List<OutDataStruct>();
         private List<OutDataStruct> inBoth = new List<OutDataStruct>();
 
+        private Dictionary<int, string> origColKey = new Dictionary<int, string>();
+        private Dictionary<int, string> compColKey = new Dictionary<int, string>();
+
         /// <summary>
         /// Compares two Lists of IndataStruct for differences. Assumes that there is a unique KEY for each row. 
         /// </summary>
         /// <param name="original"></param>
         /// <param name="comparison"></param>
         /// <returns>the entire comparisonResult (regardless of whether merged or not)</returns>
-        public ConductComparisons(List<InDataStruct> original, List<InDataStruct> comparison)
+        public void ConductComparisonsLists(List<InDataStruct> original, List<InDataStruct> comparison)
         {
             //Step 0. Validate data:
             //Verify at least 1 item to compare
@@ -120,6 +123,13 @@ namespace Compare_excel_library.Compare_Methods
             comparisonResult.AddRange(this.inOrigNotComp);
         }
 
+
+        public ConductComparisons(ExcelSheetForComparison original, ExcelSheetForComparison comparison)
+        {
+            this.origColKey = original.ColKeyLookup;
+            this.compColKey = comparison.ColKeyLookup;
+            ConductComparisonsLists(original.RowsOfData, comparison.RowsOfData);
+        }
 
         public List<OutDataStruct> InBoth()
         {
@@ -295,6 +305,16 @@ namespace Compare_excel_library.Compare_Methods
             {
                 throw new InvalidOperationException("Cannot call methods about comparison before conducting comparison");
             }
+        }
+
+        public Dictionary<int, string> GetOrigColKeyLookup()
+        {
+            return this.origColKey;
+        }
+
+        public Dictionary<int, string> GetCompColKeyLookup()
+        {
+            return this.compColKey;
         }
     }
 }

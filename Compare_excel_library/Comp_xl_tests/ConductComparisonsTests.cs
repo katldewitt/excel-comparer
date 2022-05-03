@@ -22,6 +22,21 @@ namespace Comp_xl_tests
         static readonly Datum datumDateTimeToday = new Datum(testKey + "_dt", DateTime.Today);
         static readonly Datum datumDateTimeTomorrow = new Datum(testKey + "_dt", DateTime.Today.AddDays(1));
 
+        static Dictionary<int, string> ColKeyLookupOrig = new Dictionary<int, string>() 
+        {
+            { 1, testKey+"_int"},
+            { 2, testKey+"_string"},
+            { 3, testKey+"_dt"},
+            { 4, testKey+"_bool"},
+        };
+
+        static Dictionary<int, string> ColKeyLookupComp = new Dictionary<int, string>()
+        {
+            { 1, testKey+"_int"},
+            { 2, testKey+"_string"},
+            { 3, testKey+"_dt"},
+            { 4, testKey+"_dbl"},
+        };
         static InDataStruct inDataStructureTest = new InDataStruct()
         {
             Key = "Key#1",
@@ -45,6 +60,13 @@ namespace Comp_xl_tests
             }
         };
 
+
+        ExcelSheetForComparison empty = new ExcelSheetForComparison()
+        {
+            ColKeyLookup = new Dictionary<int, string>(),
+            RowsOfData = new List<InDataStruct>()
+        };
+
         //leverage the set operations to verify expection of comparison at the row level
         int IN_BOTH_EXPECTED_ROW;
         int IN_SOURCE_ONLY_EXPECTED_ROW;
@@ -64,13 +86,38 @@ namespace Comp_xl_tests
             List<InDataStruct> original = new List<InDataStruct>() { inDataStructureTest };
             List<InDataStruct> comparison = new List<InDataStruct>() { inDataStructureCompTest };
 
+
+            ExcelSheetForComparison orig = new ExcelSheetForComparison()
+            {
+                ColKeyLookup = ColKeyLookupOrig,
+                RowsOfData = original
+            };
+
+
+            ExcelSheetForComparison comp = new ExcelSheetForComparison()
+            {
+                ColKeyLookup = ColKeyLookupComp,
+                RowsOfData = comparison
+            };
+
             IN_BOTH_EXPECTED_ROW = original.Select(x => x.Key).Intersect(comparison.Select(x => x.Key)).Count();
             IN_SOURCE_ONLY_EXPECTED_ROW = original.Select(x => x.Key).Except(comparison.Select(x => x.Key)).Count();
             IN_COMP_ONLY_EXPECTED_ROW = comparison.Select(x => x.Key).Except(original.Select(x => x.Key)).Count();
             IN_SOURCE_EXPECTED_ROW = original.Count();
             IN_COMP_EXPECTED_ROW = comparison.Count();
 
-            return new ConductComparisons(original, comparison);
+            return new ConductComparisons(orig, comp);
+        }
+
+        public ExcelSheetForComparison CreateNonUniqueSheet()
+        {
+            List<InDataStruct> nonUniqueKey = new List<InDataStruct>() { inDataStructureTest, inDataStructureTest };
+
+            return new ExcelSheetForComparison()
+            {
+                ColKeyLookup = ColKeyLookupOrig,
+                RowsOfData = nonUniqueKey
+            };
         }
 
         #region Step 0. Validate Data Assummptions
@@ -78,21 +125,21 @@ namespace Comp_xl_tests
         [ExpectedException(typeof(IOException))]
         public void ConductComparisons_EmptyLists()
         {
-            ConductComparisons condComp = new ConductComparisons(new List<InDataStruct>(), new List<InDataStruct>());
+            ConductComparisons condComp = new ConductComparisons(empty, empty);
         }
         [TestMethod]
         [ExpectedException(typeof(DataMisalignedException))]
         public void ConductComparisons_NonUniqueKeyOrig()
         {
-            List<InDataStruct> nonUniqueKey = new List<InDataStruct>() { inDataStructureTest, inDataStructureTest };
-            ConductComparisons condComp = new ConductComparisons(nonUniqueKey, new List<InDataStruct>());
+            ExcelSheetForComparison nonUniqueKey = CreateNonUniqueSheet();
+            ConductComparisons condComp = new ConductComparisons(nonUniqueKey, empty);
         }
         [TestMethod]
         [ExpectedException(typeof(DataMisalignedException))]
         public void ConductComparisons_NonUniqueKeyComp()
         {
-            List<InDataStruct> nonUniqueKey = new List<InDataStruct>() { inDataStructureTest, inDataStructureTest };
-            ConductComparisons condComp = new ConductComparisons(new List<InDataStruct>(), nonUniqueKey);
+            ExcelSheetForComparison nonUniqueKey = CreateNonUniqueSheet();
+            ConductComparisons condComp = new ConductComparisons(empty, nonUniqueKey);
         }
         #endregion
 

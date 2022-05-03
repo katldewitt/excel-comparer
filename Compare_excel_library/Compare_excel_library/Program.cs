@@ -9,10 +9,10 @@ Console.WriteLine("Hello, World!");
 //TODO: IO and paramaters
 ExcelReader er = new ExcelReader();
 //TODO: switch to relative filepath
-List<InDataStruct> orig = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\original.xlsx");
-List<InDataStruct> comp = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\comparison.xlsx");
+Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(@"C:\Projects\excel-comparer\Compare_excel_library\original.xlsx");
+Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(@"C:\Projects\excel-comparer\Compare_excel_library\comparison.xlsx");
 //DONE-ish: Comparisons inner workings
-ConductComparisons cd = new ConductComparisons(orig, comp);
+ConductComparisons cd = new ConductComparisons(orig["Sheet1"], comp["Sheet1"]);
 cd.PrintMergeStatistics();
 cd.PrintKeysOnlyInComp();
 cd.PrintKeysOnlyInOrig();
