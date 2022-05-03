@@ -76,7 +76,7 @@ namespace Compare_excel_library.Compare_Methods
                         //1.1.4: add back to final result
                         resultComparsion.Data[item.Key] = compResult;
                     }
-
+                    resultComparsion.RowSource = Source_Comparison.BOTH;
                     this.inBoth.Add(resultComparsion);
                 }
                 else
@@ -89,6 +89,7 @@ namespace Compare_excel_library.Compare_Methods
                         //1.2.2: add back to final result
                         resultComparsion.Data[item.Key] = compResult;
                     }
+                    resultComparsion.RowSource = Source_Comparison.ORIG;
                     this.inOrigNotComp.Add(resultComparsion);
 
                 }
@@ -113,6 +114,7 @@ namespace Compare_excel_library.Compare_Methods
                     //2.2.2: add back to final result
                     resultComparsion.Data[item.Key] = compResult;
                 }
+                resultComparsion.RowSource = Source_Comparison.NEW;
                 this.inCompNotOrig.Add(resultComparsion);
 
             } //End foreach of comp
@@ -172,6 +174,13 @@ namespace Compare_excel_library.Compare_Methods
             result.AddRange(inCompNotOrig);
             return result;
         }
+
+        public List<OutDataStruct> InEntireResult()
+        {
+            CheckComparisonConductedFirst();
+            return this.comparisonResult;
+        }
+
 
         /// <summary>
         /// Prints out a table of keys that were only in the comparison

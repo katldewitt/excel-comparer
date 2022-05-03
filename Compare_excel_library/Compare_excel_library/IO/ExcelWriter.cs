@@ -29,22 +29,52 @@ namespace Compare_excel_library.IO
                 WriteInBothSheet(eppackage);
                 WriteInSourceOnly(eppackage);
                 WriteOnlyInComp(eppackage);
-
+                WriteAllSheet(eppackage);
+                WriteInSourceSheet(eppackage);
+                WriteInComparisonSheet(eppackage);
                 eppackage.SaveAs(new FileInfo(filePath));
             }
         }
 
         private void WriteInBothSheet(ExcelPackage eppackage)
         {
-            //TODO: Handle multiple worksheets?
-            ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add("In Both");
+            WriteComparsions(eppackage, "In Both", _cd.InBoth());
+        }
+
+        private void WriteInSourceOnly(ExcelPackage eppackage)
+        {
+            WriteComparsions(eppackage, "Only in source", _cd.InOrigNotComp());
+        }
+
+        private void WriteOnlyInComp(ExcelPackage eppackage)
+        {
+            WriteComparsions(eppackage, "Only in Comp", _cd.InCompNotOrig());
+        }
+
+        private void WriteAllSheet(ExcelPackage eppackage)
+        {
+            WriteComparsions(eppackage, "ALL", _cd.InEntireResult());
+        }
+
+        private void WriteInSourceSheet(ExcelPackage eppackage)
+        {
+            WriteComparsions(eppackage, "In Source", _cd.InSource());
+        }
+        private void WriteInComparisonSheet(ExcelPackage eppackage)
+        {
+            WriteComparsions(eppackage, "In Comparison", _cd.InComparison());
+        }
+
+        private void WriteComparsions(ExcelPackage eppackage, string sheetName, List<OutDataStruct> ResultsToPrint)
+        {
+            ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add(sheetName);
 
             Dictionary<string, int> ColKey = new Dictionary<string, int>();
             if (ws != null)
             {
-                //Step 1. Do for InBoth()
+                //Print for each result in the list
                 int row = 1;
-                foreach (OutDataStruct item in _cd.InBoth())
+                foreach (OutDataStruct item in ResultsToPrint)
                 {
                     if (row == 1)
                     {
@@ -52,13 +82,15 @@ namespace Compare_excel_library.IO
                         row++;
                     }
 
-                    int col = 1; 
+                    int col = 1;
                     ws.Cells[row, col].Value = item.Key;
                     col++;
+
                     foreach (var dat in item.Data)
                     {
                         col = ColKey[dat.Key];
                         object valueToWrite;
+
                         //Prioritize source dependent on bool
                         if ((dat.Value.Source == Source_Comparison.NEW && _prioritizeSource) ||
                             (dat.Value.Source == Source_Comparison.ORIG && !_prioritizeSource))
@@ -94,42 +126,20 @@ namespace Compare_excel_library.IO
                             color = System.Drawing.Color.LightSalmon;
                         }
 
-                        if (!String.IsNullOrEmpty(commentText)) {
+                        if (!String.IsNullOrEmpty(commentText))
+                        {
                             var comment = ws.Cells[row, col].AddComment(commentText, "KD");
                             ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(color);
                         }
                     }
                     col = ColKey["Source"];
-                    ws.Cells[row, col].Value = "IN BOTH";
+                    ws.Cells[row, col].Value = item.RowSource;
                     row++;
-
-
                 }
             }
-
         }
 
-        /// <summary>
-        /// This method returns headers based on the first OutDataStruct 
-        /// (which is only useful if using OnlyInComp or OnlyInSource)
-        /// </summary>
-        /// <param name="ws"></param>
-        /// <param name="ods"></param>
-        private void SetUpHeaders(ExcelWorksheet ws, OutDataStruct ods)
-        {
-            int row = 1;
-            int col = 1;
-            ws.Cells[row, col].Value = "KEY";
-            col++;
-            //TODO: Set up the headers
-            foreach (var dat in ods.Data.Values)
-            {
-                ws.Cells[row, col].Value = dat.colKey;
-                col++;
-            }
-            ws.Cells[row, col].Value = "Source";
-        }
 
         /// <summary>
         /// This method creates Headers that combines the headers from both sheets to create a dictionary that will order the values
@@ -145,95 +155,35 @@ namespace Compare_excel_library.IO
             Dictionary<int, string> origColKeyLookup = _cd.GetOrigColKeyLookup();
             Dictionary<string, int> headersForSheet = new Dictionary<string, int>();
 
-            headersForSheet.Add( "KEY", col);
-            HashSet<string> items   = new HashSet<string>();
+            headersForSheet.Add("KEY", col);
+            HashSet<string> items = new HashSet<string>();
 
             //This prioritize the ORIGINAL's headers in the ordering
             foreach (KeyValuePair<int, string> dat in origColKeyLookup)
             {
                 headersForSheet.Add(dat.Value, col);
                 ws.Cells[row, col].Value = dat.Value;
+                ws.Cells[row, col].Style.Font.Bold = true;
                 col++;
             }
-            
+
             //We then add columns that were only in the comparison at the end of the worksheet
             List<string> remainingCols = compColKeyLookup.Select(x => x.Value).Except(headersForSheet.Keys).ToList();
             foreach (string colName in remainingCols)
             {
                 headersForSheet.Add(colName, col);
                 ws.Cells[row, col].Value = colName;
+                ws.Cells[row, col].Style.Font.Bold = true;
                 col++;
             }
 
             //Finally add the SOURCE 
-            headersForSheet.Add("Source", col );
+            headersForSheet.Add("Source", col);
             ws.Cells[row, col].Value = "Source";
+            ws.Cells[row, col].Style.Font.Bold = true;
 
             return headersForSheet;
         }
 
-        private void WriteInSourceOnly(ExcelPackage eppackage)
-        {
-            ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add("Only In Source");
-            if (ws != null)
-            {
-                //Step 1. Do for InOrigNotComp()
-                int row = 1;
-                foreach (OutDataStruct item in _cd.InOrigNotComp())
-                {
-                    if (row == 1)
-                    {
-                        SetUpHeaders(ws, item);
-                        row++;
-                    }
-
-                    int col = 1;
-
-                    ws.Cells[row, col].Value = item.Key;
-                    col++;
-                    foreach (var dat in item.Data)
-                    {
-                        //Prioritize source dependent on bool
-                        ws.Cells[row, col].Value = dat.Value.original.Value ?? "";
-                        col++;
-                    }
-                    ws.Cells[row, col].Value = "InOrigNotComp";
-                    row++;
-
-                }
-            }
-        }
-
-        private void WriteOnlyInComp(ExcelPackage eppackage)
-        {
-
-            ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add("Only In Comp");
-            if (ws != null)
-            {
-                //Step 1. Do for InBoth()
-                int row = 1;
-                foreach (OutDataStruct item in _cd.InCompNotOrig())
-                {
-                    if (row == 1)
-                    {
-                        SetUpHeaders(ws, item);
-                        row++;
-                    }
-
-                    int col = 1;
-                    ws.Cells[row, col].Value = item.Key;
-                    col++;
-                    foreach (var dat in item.Data)
-                    {
-                        //Prioritize source dependent on bool
-                        ws.Cells[row, col].Value = dat.Value.newer.Value ?? "";
-                        col++;
-                    }
-                    ws.Cells[row, col].Value = "InCompNotOrig";
-                    row++;
-
-                }
-            }
-        }
     }
 }

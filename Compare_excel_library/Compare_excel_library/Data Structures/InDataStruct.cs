@@ -21,6 +21,7 @@ namespace Compare_excel_library.Data_Structures
 
     public class OutDataStruct
     {
+        public Source_Comparison RowSource { get; set; }
         public string Key { get; set; }
         public Dictionary<string, OData> Data  = new Dictionary<string, OData>();
     }
