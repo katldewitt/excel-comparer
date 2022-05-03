@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 using OfficeOpenXml;
 using Compare_excel_library.Data_Structures;
 
@@ -37,6 +38,8 @@ namespace Compare_excel_library.IO
         {
             //TODO: Handle multiple worksheets?
             ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add("In Both");
+
+            Dictionary<string, int> ColKey = new Dictionary<string, int>();
             if (ws != null)
             {
                 //Step 1. Do for InBoth()
@@ -45,15 +48,16 @@ namespace Compare_excel_library.IO
                 {
                     if (row == 1)
                     {
-                        SetUpHeaders(ws, item);
+                        ColKey = SetUpHeaders(ws);
                         row++;
                     }
 
-                    int col = 1;
+                    int col = 1; 
                     ws.Cells[row, col].Value = item.Key;
                     col++;
                     foreach (var dat in item.Data)
                     {
+                        col = ColKey[dat.Key];
                         object valueToWrite;
                         //Prioritize source dependent on bool
                         if ((dat.Value.Source == Source_Comparison.NEW && _prioritizeSource) ||
@@ -67,15 +71,36 @@ namespace Compare_excel_library.IO
                         }
                         ws.Cells[row, col].Value = valueToWrite;
 
-                        if (dat.Value.delta.DeltaType != DeltaType.UNCOMPARABLE && dat.Value.delta.DeltaValue != 0)
+                        //Comments and hihglighting
+                        string commentText = null;
+                        System.Drawing.Color color = System.Drawing.Color.Transparent;
+                        if (dat.Value.Source == Source_Comparison.NEW)
                         {
-                            string commentText = $"The original value was {dat.Value.original.Value};" +
+                            commentText = $"Warning this was only found in {dat.Value.Source};" +
+                               $" The newer value is {dat.Value.newer.Value};";
+                            color = System.Drawing.Color.LightYellow;
+                        }
+                        else if (dat.Value.Source == Source_Comparison.ORIG)
+                        {
+                            commentText = $"Warning this was only found in {dat.Value.Source};" +
+                               $" The newer value is {dat.Value.original.Value};";
+                            color = System.Drawing.Color.LightYellow;
+                        }
+                        else if (dat.Value.delta.DeltaType != DeltaType.UNCOMPARABLE && dat.Value.delta.DeltaValue != 0)
+                        {
+                            commentText = $"The original value was {dat.Value.original.Value};" +
                                 $" the newer value is {dat.Value.newer.Value};" +
                                 $" The delta is {dat.Value.delta.DeltaValue} for {dat.Value.delta.DeltaType} type";
-                            var comment = ws.Cells[row, col].AddComment(commentText, "KD");
+                            color = System.Drawing.Color.LightSalmon;
                         }
-                        col++;
+
+                        if (!String.IsNullOrEmpty(commentText)) {
+                            var comment = ws.Cells[row, col].AddComment(commentText, "KD");
+                            ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(color);
+                        }
                     }
+                    col = ColKey["Source"];
                     ws.Cells[row, col].Value = "IN BOTH";
                     row++;
 
@@ -85,6 +110,12 @@ namespace Compare_excel_library.IO
 
         }
 
+        /// <summary>
+        /// This method returns headers based on the first OutDataStruct 
+        /// (which is only useful if using OnlyInComp or OnlyInSource)
+        /// </summary>
+        /// <param name="ws"></param>
+        /// <param name="ods"></param>
         private void SetUpHeaders(ExcelWorksheet ws, OutDataStruct ods)
         {
             int row = 1;
@@ -98,6 +129,47 @@ namespace Compare_excel_library.IO
                 col++;
             }
             ws.Cells[row, col].Value = "Source";
+        }
+
+        /// <summary>
+        /// This method creates Headers that combines the headers from both sheets to create a dictionary that will order the values
+        /// </summary>
+        /// <param name="ws"></param>
+        /// <returns></returns>
+        private Dictionary<string, int> SetUpHeaders(ExcelWorksheet ws)
+        {
+            int row = 1;
+            int col = 1;
+
+            Dictionary<int, string> compColKeyLookup = _cd.GetCompColKeyLookup();
+            Dictionary<int, string> origColKeyLookup = _cd.GetOrigColKeyLookup();
+            Dictionary<string, int> headersForSheet = new Dictionary<string, int>();
+
+            headersForSheet.Add( "KEY", col);
+            HashSet<string> items   = new HashSet<string>();
+
+            //This prioritize the ORIGINAL's headers in the ordering
+            foreach (KeyValuePair<int, string> dat in origColKeyLookup)
+            {
+                headersForSheet.Add(dat.Value, col);
+                ws.Cells[row, col].Value = dat.Value;
+                col++;
+            }
+            
+            //We then add columns that were only in the comparison at the end of the worksheet
+            List<string> remainingCols = compColKeyLookup.Select(x => x.Value).Except(headersForSheet.Keys).ToList();
+            foreach (string colName in remainingCols)
+            {
+                headersForSheet.Add(colName, col);
+                ws.Cells[row, col].Value = colName;
+                col++;
+            }
+
+            //Finally add the SOURCE 
+            headersForSheet.Add("Source", col );
+            ws.Cells[row, col].Value = "Source";
+
+            return headersForSheet;
         }
 
         private void WriteInSourceOnly(ExcelPackage eppackage)
