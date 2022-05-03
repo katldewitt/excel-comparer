@@ -17,6 +17,15 @@ namespace Compare_excel_library.Compare_Methods
         private Dictionary<int, string> origColKey = new Dictionary<int, string>();
         private Dictionary<int, string> compColKey = new Dictionary<int, string>();
 
+
+        public ConductComparisons(ExcelSheetForComparison original, ExcelSheetForComparison comparison)
+        {
+            this.origColKey = original.ColKeyLookup;
+            this.compColKey = comparison.ColKeyLookup;
+            ConductComparisonsLists(original.RowsOfData, comparison.RowsOfData);
+        }
+
+
         /// <summary>
         /// Compares two Lists of IndataStruct for differences. Assumes that there is a unique KEY for each row. 
         /// </summary>
@@ -47,7 +56,7 @@ namespace Compare_excel_library.Compare_Methods
             {
                 //1.1 Get those with the same key (if they exist) from comparison
                 InDataStruct? comp = comparison.SingleOrDefault(x => x.Key == orig.Key);
-                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key};
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key };
                 if (comp != null)
                 {
                     //1.1.1 Iterate through all the columns from orig
@@ -126,13 +135,6 @@ namespace Compare_excel_library.Compare_Methods
         }
 
 
-        public ConductComparisons(ExcelSheetForComparison original, ExcelSheetForComparison comparison)
-        {
-            this.origColKey = original.ColKeyLookup;
-            this.compColKey = comparison.ColKeyLookup;
-            ConductComparisonsLists(original.RowsOfData, comparison.RowsOfData);
-        }
-
         public List<OutDataStruct> InBoth()
         {
             CheckComparisonConductedFirst();
@@ -200,6 +202,58 @@ namespace Compare_excel_library.Compare_Methods
             PrintKeys("Original", inOrigNotComp);
         }
 
+        public void PrintColsOnlyInOrig()
+        {
+            CheckComparisonConductedFirst();
+            HashSet<string> keys = new HashSet<string>(this.origColKey.Values.Except(compColKey.Values));
+            PrintCols("Original", keys);
+        }
+
+        public void PrintColsOnlyInComp()
+        {
+            CheckComparisonConductedFirst();
+            HashSet<string> keys = new HashSet<string>(this.compColKey.Values.Except(origColKey.Values));
+            PrintCols("Comparison", keys);
+        }
+
+        private void PrintCols(string grouping, HashSet<string> cols)
+        {
+            /// |----------------------------------|
+            /// | Cols only in {Grouping}          | 
+            /// |----------------------------------|
+            /// | Column 1                         | 
+            /// | Column 5                         | 
+            /// | Column 18                        | 
+            /// | Column 99                        | 
+            /// |----------------------------------|
+
+            //Define constants for printing
+            int NUM_ITEMS = 1;
+            int ADDITIONAL_CHARS_IN_ALIGNED_TXT = 0;
+
+            if (cols.Count == 0)
+            {
+                string Header = $"There are no columns that were only in {grouping}";
+                PrintDividingLine(Header.Length, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+                Console.WriteLine(Header);
+                PrintDividingLine(Header.Length, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+            }
+            else
+            {
+                string Header = $"Columns only in {grouping}";
+                int maxLength = Math.Max(cols.Max(x => x.Length), Header.Length);
+
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+                Console.WriteLine(PrintAlignedText(new List<string>() { Header }, maxLength));
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+                foreach (string item in cols)
+                {
+                    Console.WriteLine(PrintAlignedText(new List<string>() { item }, maxLength));
+                }
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
+            }
+        }
+
         private void PrintKeys(string grouping, List<OutDataStruct> listing)
         {
             /// |----------------------------------|
@@ -228,7 +282,7 @@ namespace Compare_excel_library.Compare_Methods
                 int maxLength = Math.Max(keysToPrint.Max(x => x.Length), Header.Length);
 
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
-                Console.WriteLine(PrintAlignedText(new List<string>(){ Header}, maxLength));
+                Console.WriteLine(PrintAlignedText(new List<string>() { Header }, maxLength));
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
                 foreach (string item in keysToPrint)
                 {

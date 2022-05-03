@@ -21,9 +21,12 @@ namespace Compare_excel_library.IO
             this._cd = cd;
         }
 
-        public void WriteReport(string filePath, string type, bool prioritizeSource)
+        public void WriteReport(string filePath, bool prioritizeSource)
         {
             this._prioritizeSource = prioritizeSource;
+
+            //TODO: how to let users decide which comparison to print
+
             using (var eppackage = new ExcelPackage())
             {
                 WriteInBothSheet(eppackage);
@@ -35,6 +38,8 @@ namespace Compare_excel_library.IO
                 eppackage.SaveAs(new FileInfo(filePath));
             }
         }
+
+        #region Sheet Creation and Helper Methods
 
         private void WriteInBothSheet(ExcelPackage eppackage)
         {
@@ -65,6 +70,13 @@ namespace Compare_excel_library.IO
             WriteComparsions(eppackage, "In Comparison", _cd.InComparison());
         }
 
+        #region Helper Methods
+        /// <summary>
+        /// The driver that creates a sheet in the excel using the resultsToPrint List
+        /// </summary>
+        /// <param name="eppackage"></param>
+        /// <param name="sheetName"></param>
+        /// <param name="ResultsToPrint"></param>
         private void WriteComparsions(ExcelPackage eppackage, string sheetName, List<OutDataStruct> ResultsToPrint)
         {
             ExcelWorksheet ws = eppackage.Workbook.Worksheets.Add(sheetName);
@@ -140,7 +152,6 @@ namespace Compare_excel_library.IO
             }
         }
 
-
         /// <summary>
         /// This method creates Headers that combines the headers from both sheets to create a dictionary that will order the values
         /// </summary>
@@ -184,6 +195,8 @@ namespace Compare_excel_library.IO
 
             return headersForSheet;
         }
+        #endregion
+        #endregion
 
     }
 }

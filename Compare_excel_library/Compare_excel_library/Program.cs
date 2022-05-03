@@ -16,10 +16,12 @@ ConductComparisons cd = new ConductComparisons(orig["Sheet1"], comp["Sheet1"]);
 cd.PrintMergeStatistics();
 cd.PrintKeysOnlyInComp();
 cd.PrintKeysOnlyInOrig();
+cd.PrintColsOnlyInComp();
+cd.PrintColsOnlyInOrig();
 //TODO: Output file
 ExcelWriter ew = new ExcelWriter(cd);
-ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report1.xlsx", "TODO", true);
-ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report2.xlsx", "TODO", false);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report1.xlsx", true);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report2.xlsx", false);
 
 //TODO: clean up exceptions?
 //TODO: Library or blazor app?
