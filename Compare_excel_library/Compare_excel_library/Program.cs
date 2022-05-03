@@ -17,7 +17,9 @@ cd.PrintMergeStatistics();
 cd.PrintKeysOnlyInComp();
 cd.PrintKeysOnlyInOrig();
 //TODO: Output file
-
+ExcelWriter ew = new ExcelWriter(cd);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report1.xlsx", "TODO", true);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report2.xlsx", "TODO", false);
 
 //TODO: clean up exceptions?
 //TODO: Library or blazor app?
