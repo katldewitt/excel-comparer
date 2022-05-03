@@ -129,12 +129,13 @@ namespace Compare_excel_library.IO
                         {
                             ws.Cells[row, col].Value = "KEY";
                             col++;
-                            //TODO: Set up the headers
+                            //TODO: Set up the headers across types (ordering changes since not all columns are present)
                             foreach (var dat in item.Data.Values)
                             {
                                 ws.Cells[row, col].Value = dat.colKey;
                                 col++;
                             }
+                            ws.Cells[row, col].Value = "Source";
                             row++;
                         }
                          col = 1;

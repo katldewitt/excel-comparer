@@ -10,11 +10,7 @@ namespace Compare_excel_library.IO
 {
     public class ExcelReader
     {
-        //TODO: Big question is how to parse the data into right format (int vs string vs bool).
-        //-->Allow user defined config?
-        //--> make best guess?
-
-        //TODO: verify unique key assumption 
+        //TODO: Keep col key in excel sheet
         //TODO: add option to use row number as key instead
 
         public List<InDataStruct> ReadExcelData(string filePath)
