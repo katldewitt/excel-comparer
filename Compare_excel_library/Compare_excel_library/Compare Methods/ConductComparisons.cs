@@ -44,7 +44,7 @@ namespace Compare_excel_library.Compare_Methods
             {
                 //1.1 Get those with the same key (if they exist) from comparison
                 InDataStruct? comp = comparison.SingleOrDefault(x => x.Key == orig.Key);
-                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key };
+                OutDataStruct resultComparsion = new OutDataStruct() { Key = orig.Key};
                 if (comp != null)
                 {
                     //1.1.1 Iterate through all the columns from orig
@@ -210,6 +210,7 @@ namespace Compare_excel_library.Compare_Methods
 
                 PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
                 Console.WriteLine(PrintAlignedText(new List<string>(){ Header}, maxLength));
+                PrintDividingLine(maxLength, NUM_ITEMS, ADDITIONAL_CHARS_IN_ALIGNED_TXT);
                 foreach (string item in keysToPrint)
                 {
                     Console.WriteLine(PrintAlignedText(new List<string>() { item }, maxLength));

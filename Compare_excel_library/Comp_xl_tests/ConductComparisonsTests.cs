@@ -115,7 +115,7 @@ namespace Comp_xl_tests
                 "Since all rows are in both, we should see the same sequence InBoth and InSource");
 
             //2. Verify checks at the column level
-            OutDataStruct columnLevelChecks = bothList.FirstOrDefault();
+            OutDataStruct? columnLevelChecks = bothList.FirstOrDefault();
             Assert.IsNotNull(columnLevelChecks);
             
             //2.1 Check the counts
@@ -129,8 +129,8 @@ namespace Comp_xl_tests
                                         .Where(x => x.Value.Source == Source_Comparison.BOTH) //Changes only occur in records in both
                                         .Select(z => z.Value) //We no longer need the Dict structure
                                         .ToList();
-            Assert.AreEqual(1, withChanges.Where(x => x.delta.DeltaValue == 0).Count());
-            Assert.AreEqual(2, withChanges.Where(x => x.delta.DeltaValue != 0).Count(), "There should be 2 items");
+            Assert.AreEqual(1, withChanges.Where(x => DerefernceODataDelta(x).DeltaValue == 0).Count());
+            Assert.AreEqual(2, withChanges.Where(x => DerefernceODataDelta(x).DeltaValue != 0).Count(), "There should be 2 items");
             Assert.IsTrue(withChanges.Any(x => x.colKey == datumString.ColKey));
             Assert.IsTrue(withChanges.Any(x => x.colKey == datumDateTimeToday.ColKey));
 
@@ -173,5 +173,17 @@ namespace Comp_xl_tests
 
         }
         #endregion
+
+        private Delta DerefernceODataDelta(OData result)
+        {
+            if (result.delta != null)
+            {
+                return result.delta;
+            }
+            else
+            {
+                throw new Exception("Delta is NULL where unexpected");
+            }
+        }
     }
 }
