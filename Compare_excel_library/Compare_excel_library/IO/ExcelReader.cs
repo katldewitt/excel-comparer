@@ -10,12 +10,11 @@ namespace Compare_excel_library.IO
 {
     public class ExcelReader
     {
-        //TODO: Keep col key in excel sheet
+        //TODO: add option to use row number as key instead
         public List<InDataStruct> ReadExcelData(string filePath)
         {
             return null;
         }
-        //TODO: add option to use row number as key instead
 
         public ExcelSheetForComparison ReadExcelSheet(ExcelWorksheet ws)
         {
