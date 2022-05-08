@@ -38,9 +38,8 @@ namespace Compare_excel_library.Compare_Methods
                 result.delta = Uncomparable;
                 return result;
             }
-
             //Edge case: Either are null, so can't compare
-            if (orig == null)
+            else if (orig == null)
             {
                 result.Source = Source_Comparison.NEW;
                 result.delta = Uncomparable;

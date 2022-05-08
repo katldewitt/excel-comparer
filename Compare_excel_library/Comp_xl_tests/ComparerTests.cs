@@ -29,7 +29,7 @@ namespace Comp_xl_tests
             if (orig == null)
             {
                 Assert.AreEqual(Source_Comparison.NEW, result.Source);
-                Assert.AreEqual(comp.ColKey, result.colKey);
+                Assert.AreEqual(comp != null ? comp.ColKey : null, result.colKey);
             }
             else if(comp == null)
             {
@@ -44,25 +44,37 @@ namespace Comp_xl_tests
             }
         }
 
+        private Delta DerefernceODataDelta(OData result)
+        {
+            if (result.delta != null)
+            {
+                return result.delta;
+            }
+            else
+            {
+                throw new Exception("Delta is NULL where unexpected");
+            }
+        }
+
         #region Compare To Self
         /// These comparisons are intended to demonstrate that an object compared to itself returns a delta of 0
         /// for the comparison type.
-        
+
         [TestMethod]
         public void Compare_selfString()
         {
             OData result = Comparer.Compare(datumString, datumString);
             CommonAssertionsForComparison(datumString, datumString, result);
-            Assert.AreEqual(DeltaType.STRING, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.STRING, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
         [TestMethod]
         public void Compare_selfBool()
         {
             OData result = Comparer.Compare(datumBool, datumBool);
             CommonAssertionsForComparison(datumBool, datumBool, result);
-            Assert.AreEqual(DeltaType.BOOL, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.BOOL, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -70,8 +82,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(numericInt, numericInt);
             CommonAssertionsForComparison(numericInt, numericInt, result);
-            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.NUMERIC, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -79,8 +91,8 @@ namespace Comp_xl_tests
         {
              OData result = Comparer.Compare(numericFloat, numericFloat);
             CommonAssertionsForComparison(numericFloat, numericFloat, result);
-            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.NUMERIC, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -88,8 +100,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(numericDouble, numericDouble);
             CommonAssertionsForComparison(numericDouble, numericDouble, result);
-            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.NUMERIC, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -97,8 +109,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(datumDateTimeToday, datumDateTimeToday);
             CommonAssertionsForComparison(datumDateTimeToday, datumDateTimeToday, result);
-            Assert.AreEqual(DeltaType.DATE, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.DATE, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -106,8 +118,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(numericDecimal, numericDecimal);
             CommonAssertionsForComparison(numericDecimal, numericDecimal, result);
-            Assert.AreEqual(DeltaType.NUMERIC, result.delta.DeltaType);
-            Assert.AreEqual(0, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.NUMERIC, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(0, DerefernceODataDelta(result).DeltaValue);
         }
 
         #endregion
@@ -120,7 +132,7 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(datumBool, datumString);
             CommonAssertionsForComparison(datumBool, datumString, result);
-            Assert.AreEqual(DeltaType.UNCOMPARABLE, result.delta.DeltaType);
+            Assert.AreEqual(DeltaType.UNCOMPARABLE, DerefernceODataDelta(result).DeltaType);
         }
         #endregion
 
@@ -130,16 +142,16 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(null, numericDouble);
             CommonAssertionsForComparison(null, numericDouble, result);
-            Assert.AreEqual(DeltaType.UNCOMPARABLE, result.delta.DeltaType);
-            Assert.AreEqual(int.MaxValue, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.UNCOMPARABLE, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(int.MaxValue, DerefernceODataDelta(result).DeltaValue);
         }
         [TestMethod]
         public void Compare_CompNull()
         {
             OData result = Comparer.Compare(numericDouble, null);
             CommonAssertionsForComparison(numericDouble, null, result);
-            Assert.AreEqual(DeltaType.UNCOMPARABLE, result.delta.DeltaType);
-            Assert.AreEqual(int.MaxValue, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.UNCOMPARABLE, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(int.MaxValue, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -147,8 +159,8 @@ namespace Comp_xl_tests
         {
             //TODO: should this raise exception?
             OData result = Comparer.Compare(null, null);
-            Assert.AreEqual(DeltaType.UNCOMPARABLE, result.delta.DeltaType);
-            Assert.AreEqual(int.MaxValue, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.UNCOMPARABLE, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(int.MaxValue, DerefernceODataDelta(result).DeltaValue);
         }
         #endregion
 
@@ -159,8 +171,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(datumString, datumStringChanged);
             CommonAssertionsForComparison(datumString, datumStringChanged, result);
-            Assert.AreEqual(DeltaType.STRING, result.delta.DeltaType);
-            Assert.AreEqual(1, result.delta.DeltaValue);
+            Assert.AreEqual(DeltaType.STRING, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(1, DerefernceODataDelta(result).DeltaValue);
         }
 
         [TestMethod]
@@ -168,8 +180,8 @@ namespace Comp_xl_tests
         {
             OData result = Comparer.Compare(datumDateTimeToday, datumDateTimeTomorrow);
             CommonAssertionsForComparison(datumDateTimeToday, datumDateTimeTomorrow, result);
-            Assert.AreEqual(DeltaType.DATE, result.delta.DeltaType);
-            Assert.AreEqual(-1, result.delta.DeltaValue, "Failure. Today [orig] should be earlier than tomorrow [comp]");
+            Assert.AreEqual(DeltaType.DATE, DerefernceODataDelta(result).DeltaType);
+            Assert.AreEqual(-1, DerefernceODataDelta(result).DeltaValue, "Failure. Today [orig] should be earlier than tomorrow [comp]");
         }
         #endregion
 

@@ -46,7 +46,7 @@ namespace Compare_excel_library.IO
                     {
                         //Base case: use row # to make comparisons
                         string rowKey = row.ToString();
-                        if (true) //TODO: When do we want to use row # only??
+                        if (ws.Cells[row, 1].Value != null) //TODO: When do we want to use row # only??
                         {
                             rowKey = ws.Cells[row, 1].Value.ToString();
                         }
@@ -57,9 +57,17 @@ namespace Compare_excel_library.IO
                         {
                             var cellOfInterest = ws.Cells[row, col].Value;
                             colKeyLookup.TryGetValue(col, out string? colKey);
-                            Datum dm = new Datum(colKey, cellOfInterest);
+                            if (colKey != null)
+                            {
+                                Datum dm = new Datum(colKey, cellOfInterest);
+                                inData.Data.Add(colKey, dm);
 
-                            inData.Data.Add(colKey, dm);
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException("Column NOT found in colLookup");
+                            }
+
                         }
 
                         resultingReadin.Add(inData);
