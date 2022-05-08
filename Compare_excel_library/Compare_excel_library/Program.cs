@@ -9,8 +9,8 @@ Console.WriteLine("Hello, World!");
 //TODO: IO and paramaters
 ExcelReader er = new ExcelReader();
 //TODO: switch to relative filepath
-List<InDataStruct> orig = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\original.xlsx");
-List<InDataStruct> comp = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\comparison.xlsx");
+List<InDataStruct> orig = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\assets\original.xlsx");
+List<InDataStruct> comp = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\assets\comparison.xlsx");
 //DONE-ish: Comparisons inner workings
 ConductComparisons cd = new ConductComparisons(orig, comp);
 cd.PrintMergeStatistics();

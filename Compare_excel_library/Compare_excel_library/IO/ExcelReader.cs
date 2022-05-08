@@ -10,19 +10,12 @@ namespace Compare_excel_library.IO
 {
     public class ExcelReader
     {
-        //TODO: Big question is how to parse the data into right format (int vs string vs bool).
-        //-->Allow user defined config?
-        //--> make best guess?
-
-        //TODO: verify unique key assumption 
         //TODO: add option to use row number as key instead
-
         public List<InDataStruct> ReadExcelData(string filePath)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             List<InDataStruct> resultingReadin = new List<InDataStruct>();
 
-            //TODO: Filepath dynamic?
             using (var eppackage = new ExcelPackage(new FileInfo(filePath)))
             {
                 //TODO: handle multiple worksheets?
@@ -55,7 +48,6 @@ namespace Compare_excel_library.IO
                         string rowKey = row.ToString();
                         if (true) //TODO: When do we want to use row # only??
                         {
-                            //TODO: is key always just row 1?!
                             rowKey = ws.Cells[row, 1].Value.ToString();
                         }
                         InDataStruct inData = new InDataStruct() { Key = rowKey, Data = new Dictionary<string, Datum>()};
