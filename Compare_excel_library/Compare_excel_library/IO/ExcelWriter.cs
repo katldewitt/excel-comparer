@@ -98,9 +98,13 @@ namespace Compare_excel_library.IO
                     ws.Cells[row, col].Value = item.Key;
                     col++;
 
+                    //This keeps track of which columns have or have NOT been populated
+                    HashSet<string> columnsPopulated = new HashSet<string>();
+
                     foreach (var dat in item.Data)
                     {
                         col = ColKey[dat.Key];
+                        columnsPopulated.Add(dat.Key);
                         object valueToWrite;
 
                         //Prioritize source dependent on bool
@@ -147,6 +151,29 @@ namespace Compare_excel_library.IO
                     }
                     col = ColKey["Source"];
                     ws.Cells[row, col].Value = item.RowSource;
+
+                    //Identify columns that were not present in comparison
+                    List<string> colsNotPresent = ColKey.Keys.Where(x => !columnsPopulated.Contains(x)).ToList();
+                    foreach (string toImpute in colsNotPresent)
+                    {
+                        col = ColKey[toImpute];
+                        //Comments and hihglighting
+                        System.Drawing.Color color = System.Drawing.Color.LightYellow;
+                        string source = !_prioritizeSource ? "Comparison" : "Original";
+                        string commentText = $"Warning column was only found in {source};" +
+                               $" This cell doesn't have a value due to the column not existing.";
+                        try
+                        {
+
+                            var comment = ws.Cells[row, col].AddComment(commentText, "KD");
+                            ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(color);
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+
                     row++;
                 }
             }
