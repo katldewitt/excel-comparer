@@ -9,15 +9,19 @@ Console.WriteLine("Hello, World!");
 //TODO: IO and paramaters
 ExcelReader er = new ExcelReader();
 //TODO: switch to relative filepath
-List<InDataStruct> orig = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\assets\original.xlsx");
-List<InDataStruct> comp = er.ReadExcelData(@"C:\Projects\excel-comparer\Compare_excel_library\assets\comparison.xlsx");
+Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(@"C:\Projects\excel-comparer\Compare_excel_library\assets\original.xlsx");
+Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(@"C:\Projects\excel-comparer\Compare_excel_library\assets\comparison.xlsx");
 //DONE-ish: Comparisons inner workings
-ConductComparisons cd = new ConductComparisons(orig, comp);
+ConductComparisons cd = new ConductComparisons(orig["Sheet1"], comp["Sheet1"]);
 cd.PrintMergeStatistics();
 cd.PrintKeysOnlyInComp();
 cd.PrintKeysOnlyInOrig();
+cd.PrintColsOnlyInComp();
+cd.PrintColsOnlyInOrig();
 //TODO: Output file
-
+ExcelWriter ew = new ExcelWriter(cd);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report1.xlsx", true);
+ew.WriteReport(@"C:\Projects\excel-comparer\Compare_excel_library\report2.xlsx", false);
 
 //TODO: clean up exceptions?
 //TODO: Library or blazor app?

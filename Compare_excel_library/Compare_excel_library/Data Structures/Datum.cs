@@ -13,7 +13,7 @@ namespace Compare_excel_library.Data_Structures
         {
             this.ColKey = key;
             this.Value = value;
-            this.Type = value.GetType();
+            this.Type = value == null? null : value.GetType();
         }
         /// <summary>
         /// The uniquely identified key of the column from which the datum is derived.

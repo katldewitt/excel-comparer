@@ -13,70 +13,83 @@ namespace Compare_excel_library.IO
         //TODO: add option to use row number as key instead
         public List<InDataStruct> ReadExcelData(string filePath)
         {
+            return null;
+        }
+
+        public ExcelSheetForComparison ReadExcelSheet(ExcelWorksheet ws)
+        {
+            ExcelSheetForComparison finalSheetDataStruct = new ExcelSheetForComparison();
+            List< InDataStruct> resultingReadin = new List< InDataStruct>();
+
+            if (ws != null)
+            {
+                Dictionary<int, string> colKeyLookup = new Dictionary<int, string>();
+
+                //Step 1. Get colKeysLookup from row 1
+                //TODO: Is it always on row 1??
+                int row = 1;
+                for (int col = 1; col <= ws.Dimension.Columns; col++)
+                {
+                    var colOfInterest = ws.Cells[row, col].Value;
+                    if (colOfInterest != null)
+                    {
+                        colKeyLookup[col] = colOfInterest.ToString();
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                finalSheetDataStruct.ColKeyLookup = colKeyLookup; 
+
+                //Step 2. Iterate through each row to make data starting on Row 2
+
+                for (row = 2; row <= ws.Dimension.Rows; row++)
+                {
+                    //Base case: use row # to make comparisons
+                    string rowKey = row.ToString();
+                    if (true) //TODO: When do we want to use row # only??
+                    {
+                        //TODO: is key always just row 1?!
+                        rowKey = ws.Cells[row, 1].Value.ToString();
+                    }
+                    InDataStruct inData = new InDataStruct() { Key = rowKey, Data = new Dictionary<string, Datum>() };
+
+
+                    for (int col = 2; col <= ws.Dimension.Columns; col++)
+                    {
+                        var cellOfInterest = ws.Cells[row, col].Value;
+                        colKeyLookup.TryGetValue(col, out string? colKey);
+                        Datum dm = new Datum(colKey, cellOfInterest);
+
+                        inData.Data.Add(colKey, dm);
+                    }
+
+                    resultingReadin.Add(inData);
+                }
+            }
+            finalSheetDataStruct.RowsOfData = resultingReadin;
+            return finalSheetDataStruct;
+
+        }
+
+        public Dictionary<string, ExcelSheetForComparison> ReadEntireExcel(string filePath)
+        {
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            List<InDataStruct> resultingReadin = new List<InDataStruct>();
+            Dictionary<string, ExcelSheetForComparison> spreadsheetObject = new Dictionary<string, ExcelSheetForComparison>();
 
             using (var eppackage = new ExcelPackage(new FileInfo(filePath)))
             {
-                //TODO: handle multiple worksheets?
-                ExcelWorksheet ws = eppackage.Workbook.Worksheets[0];
-                if (ws != null)
+                foreach (ExcelWorksheet ws in eppackage.Workbook.Worksheets)
                 {
-                    Dictionary<int, string> colKeyLookup = new Dictionary<int, string>();
-
-                    //Step 1. Get colKeysLookup from row 1
-                    //TODO: Is it always on row 1??
-                    int row = 1;
-                    for (int col = 1; col <= ws.Dimension.Columns; col++)
-                    {
-                        var colOfInterest = ws.Cells[row, col].Value;
-                        if (colOfInterest != null)
-                        {
-                            colKeyLookup[col] = colOfInterest.ToString();
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    //Step 2. Iterate through each row to make data starting on Row 2
-
-                    for (row = 2; row <= ws.Dimension.Rows; row++)
-                    {
-                        //Base case: use row # to make comparisons
-                        string rowKey = row.ToString();
-                        if (ws.Cells[row, 1].Value != null) //TODO: When do we want to use row # only??
-                        {
-                            rowKey = ws.Cells[row, 1].Value.ToString();
-                        }
-                        InDataStruct inData = new InDataStruct() { Key = rowKey, Data = new Dictionary<string, Datum>()};
-
-
-                        for (int col = 2; col <= ws.Dimension.Columns; col++)
-                        {
-                            var cellOfInterest = ws.Cells[row, col].Value;
-                            colKeyLookup.TryGetValue(col, out string? colKey);
-                            if (colKey != null)
-                            {
-                                Datum dm = new Datum(colKey, cellOfInterest);
-                                inData.Data.Add(colKey, dm);
-
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Column NOT found in colLookup");
-                            }
-
-                        }
-
-                        resultingReadin.Add(inData);
-                    }
+                    ExcelSheetForComparison excelSheet = ReadExcelSheet(ws);
+                    spreadsheetObject.Add(ws.Name, excelSheet);
                 }
             }
 
-            return resultingReadin;
-
+            return spreadsheetObject;
         }
+
     }
 }
