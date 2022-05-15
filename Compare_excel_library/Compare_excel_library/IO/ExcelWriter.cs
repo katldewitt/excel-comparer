@@ -199,6 +199,10 @@ namespace Compare_excel_library.IO
             Dictionary<string, int> headersForSheet = new Dictionary<string, int>();
 
             headersForSheet.Add("KEY", col);
+            ws.Cells[row, col].Value = "KEY";
+            ws.Cells[row, col].Style.Font.Bold = true;
+
+            col++;
             HashSet<string> items = new HashSet<string>();
 
             //This prioritize the ORIGINAL's headers in the ordering

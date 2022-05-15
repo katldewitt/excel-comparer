@@ -59,7 +59,6 @@ namespace Compare_excel_library.IO
                         case ColKeyOptions.COL_A_ONLY:
                             rowKey = ws.Cells[row, 1].Value.ToString();
                             startCol = 2;
-
                             break;
                         case ColKeyOptions.CONCATENATED_COLS:
                             break;
