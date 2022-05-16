@@ -17,11 +17,10 @@ namespace Compare_excel_library.IO
             CONCATENATED_COLS
         }
 
-        public ExcelSheetForComparison ReadExcelSheet(ExcelWorksheet ws, ColKeyOptions colKeyOptions)
+        public ExcelSheetForComparison ReadExcelSheet(ExcelWorksheet ws, ColKeyOptions colKeyOptions, List<int> colsToConcat = null)
         {
             ExcelSheetForComparison finalSheetDataStruct = new ExcelSheetForComparison();
             List< InDataStruct> resultingReadin = new List< InDataStruct>();
-
             if (ws != null)
             {
                 Dictionary<int, string> colKeyLookup = new Dictionary<int, string>();
@@ -48,25 +47,31 @@ namespace Compare_excel_library.IO
                 {
                     //Base case: use row # to make comparisons
                     string rowKey = "";
-                    int startCol = 0;
+                    int startCol = 1;
                     switch (colKeyOptions)
                     {
                         default:
                         case ColKeyOptions.ROW_NUMBER:
                             rowKey = row.ToString();
-                            startCol = 1;
                             break;
                         case ColKeyOptions.COL_A_ONLY:
                             rowKey = ws.Cells[row, 1].Value.ToString();
-                            startCol = 2;
                             break;
                         case ColKeyOptions.CONCATENATED_COLS:
+                            StringBuilder sb = new StringBuilder();
+                            foreach (int col in colsToConcat)
+                            {
+                                var colVal = ws.Cells[row, col].Value;
+                                string colValToAppend = colVal == null ? "{null}" : colVal.ToString();
+                                sb.Append("-" + colVal);
+                            }
+                            rowKey = sb.ToString();
                             break;
                     }
 
                     InDataStruct inData = new InDataStruct() { Key = rowKey, Data = new Dictionary<string, Datum>() };
 
-                    for (int col = startCol; col <= ws.Dimension.Columns; col++)
+                    for (int col = startCol; col <= ws.Columns.EndColumn; col++)
                     {
                         var cellOfInterest = ws.Cells[row, col].Value;
                         colKeyLookup.TryGetValue(col, out string? colKey);
@@ -83,7 +88,7 @@ namespace Compare_excel_library.IO
 
         }
 
-        public Dictionary<string, ExcelSheetForComparison> ReadEntireExcel(string filePath, ColKeyOptions colKeyOptions)
+        public Dictionary<string, ExcelSheetForComparison> ReadEntireExcel(string filePath, ColKeyOptions colKeyOptions, List<int> colsToConcat = null)
         {
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -93,7 +98,7 @@ namespace Compare_excel_library.IO
             {
                 foreach (ExcelWorksheet ws in eppackage.Workbook.Worksheets)
                 {
-                    ExcelSheetForComparison excelSheet = ReadExcelSheet(ws, colKeyOptions);
+                    ExcelSheetForComparison excelSheet = ReadExcelSheet(ws, colKeyOptions, colsToConcat);
                     spreadsheetObject.Add(ws.Name, excelSheet);
                 }
             }
