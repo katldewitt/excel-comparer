@@ -51,13 +51,39 @@ In the simple example, we can easily figure out how to reconcile the two spreads
 
 ### Assumptions
 
-//TODO: Flesh out (1. unique key assumption, 2. exact match in string comparisons)
+When using this comparison tool, it is crucial that you are aware of the key assumptions we have about the spreadsheet. The assumptions are listed below and will be verified where possible when ingesting your spreadsheet.
+
+1. **Unique Key**
+    - In order to conduct comparisons appropriately, the data must be uniquely identifiable by a key. There are some options to generate a unique key during read in. If your data violates the unique key rule after selecting the appropriate read in parameter, comparisons will not be conducted.
+2. **Row 1 serves as Header**
+    - Row 1 must contain the header (i.e. column names) in the spreadsheet. Using other rows could be addressed in future improvements with enough interest.
+3. **String Comparisons are EXACT Comparisons**
+    - When comparing strings, we are using [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) to generate a numeric value of how similar two strings are. An exact match requires the string to be the same case.
+4. **No merged cells**
+    - Since the row/col are incredibly important in defining keys and comparisons, spreadsheets with merged cells will generate unexpected results. As such, please unmerge cells before running comparisons.
+5. **Comparisons will only be conducted with 'like' objects**
+    - The program will return uncomparable if two objects are not of the same "type." For example, if we tried to compare the _date_ "5/1/2019" to the _bool_ "TRUE," the result of comparing these as dates, numbers, bools or strings would not be useful for human review since the result would not provide meaningful information.
 
 ## System Design
 
 ### Read In
+
+//TODO: Flesh out, 3 options for read in(Col A only, Concatenated, Row #)
+
 ### Conduct Comparison
+
+//TODO: Flesh out
+
 ### Write Output
+
+//TODO: Flesh out
+
+The other parameter available when designing reports is `prioritizeSource`, a bool that when TRUE has the Original's values placed in the excel and the Comparison's values placed in the comment.
+
+| prioritizeSource | Example Use Case |
+|----|----|
+| True | Say you're running an automated report that generates data you need to audit. This view will allow you to identify patterns or mistakes in data entry that can be used for training since it focuses on the original data. |
+| False | Say you're running an automated report that generates data you need to audit. This view will help you see the changes that have been made between the two excels since you care more about the final state of the excel than the original. |
 
 ### An aside on SQL Joins as a Method to Understand Output Options
 
@@ -77,10 +103,3 @@ There are 6 reports that are available when running the comparisons. Those repor
 | In Comparison | Right Inclusive | Say you're creating a report table that has comments from a reviewer and updates from an analyst. This can help you incorporate the work of the analyst. |
 
 You may notice that there is no report for the Full Outer Exclusive Join. I could not think of a good use case for this view. If you have a use case for wanting to see the rows that were only in comp and only in original in the same sheet, please feel free to file an issue.
-
-The other parameter available when designing reports is `prioritizeSource`, a bool that when TRUE has the Original's values placed in the excel and the Comparison's values placed in the comment.
-
-| prioritizeSource | Example Use Case |
-|----|----|
-| True | Say you're running an automated report that generates data you need to audit. This view will allow you to identify patterns or mistakes in data entry that can be used for training since it focuses on the original data. |
-| False | Say you're running an automated report that generates data you need to audit. This view will help you see the changes that have been made between the two excels since you care more about the final state of the excel than the original. |
