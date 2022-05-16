@@ -58,3 +58,29 @@ In the simple example, we can easily figure out how to reconcile the two spreads
 ### Read In
 ### Conduct Comparison
 ### Write Output
+
+### An aside on SQL Joins as a Method to Understand Output Options
+
+Most programmers are familiar with SQL (structured query language), so it is helpful to recognize how this program's output is similar to SQL Joins. I have added a visual below of SQL joins that will be helpful to map onto the existing report options.
+
+![name](https://www.devtodev.com/upload/images/sql5_2.png)
+
+There are 6 reports that are available when running the comparisons. Those reports are as follows:
+
+| Report Name | SQL Equivalent | Example Use Case |
+|----|----|----|
+| In Both | Inner Join | Say you're tracking participants. This view will allow you to reconcile participant's data who existed in both excels. |
+| Only in Source | Left Exclusive | Say you're tracking participants. This view will allow you to identify participants who have disenrolled. |
+| Only in Comparison | Right Exclusive | Say you're tracking participants. This view will allow you to identify participants who have enrolled. |
+| All | Full Outer Join | Say you're creating a report table that has comments from a reviewer [orig] and updates from an analyst [comp]. This can help you to migrate the comments from the reviewer and the work of the analyst. |
+| In Source | Left Inclusive | Say you're creating a report table that has comments from a reviewer and updates from an analyst. This can help you to migrate the comments from the reviewer. |
+| In Comparison | Right Inclusive | Say you're creating a report table that has comments from a reviewer and updates from an analyst. This can help you incorporate the work of the analyst. |
+
+You may notice that there is no report for the Full Outer Exclusive Join. I could not think of a good use case for this view. If you have a use case for wanting to see the rows that were only in comp and only in original in the same sheet, please feel free to file an issue.
+
+The other parameter available when designing reports is `prioritizeSource`, a bool that when TRUE has the Original's values placed in the excel and the Comparison's values placed in the comment.
+
+| prioritizeSource | Example Use Case |
+|----|----|
+| True | Say you're running an automated report that generates data you need to audit. This view will allow you to identify patterns or mistakes in data entry that can be used for training since it focuses on the original data. |
+| False | Say you're running an automated report that generates data you need to audit. This view will help you see the changes that have been made between the two excels since you care more about the final state of the excel than the original. |
