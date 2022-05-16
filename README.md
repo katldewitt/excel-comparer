@@ -1,7 +1,14 @@
 # excel-comparer
+
 A set of methods to compare two excels (.xlsx) that expand on existing excel comparisons.
 
 [![.NET](https://github.com/katldewitt/excel-comparer/actions/workflows/dotnet.yml/badge.svg)](https://github.com/katldewitt/excel-comparer/actions/workflows/dotnet.yml)
+
+## Table of Contents
+
+1. [The Problem](#problem)
+2. [Assumptions about input Excels](#assumptions)
+3. [System Design](#system-design)
 
 ## Problem
 
@@ -68,7 +75,7 @@ When using this comparison tool, it is crucial that you are aware of the key ass
 
 ### Read In
 
-//TODO: Flesh out, 3 options for read in(Col A only, Concatenated, Row #)
+//TODO: Flesh out, 3 options for read in (Col A only, Concatenated, Row #)
 
 ### Conduct Comparison
 
