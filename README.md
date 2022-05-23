@@ -75,7 +75,13 @@ When using this comparison tool, it is crucial that you are aware of the key ass
 
 ### Read In
 
-//TODO: Flesh out, 3 options for read in (Col A only, Concatenated, Row #)
+During Read In of the excel sheet, you will have the option to select one of three Enums for how to define the key. It is important that you utilize the same key selecting method on both excels for comparison.
+
+| Enum Name | Definition | Use Case |
+|----|--|--|
+| ROW_NUMBER | The key is the row number in which the data are found. | Say that you received via email a copy of the below tables and the sender reported they did not make any changes. You want to verify that nothing has changed by POSITION (i.e. not only are all rows still there, but also no rows have been re-ordered). The changes in positioning would be reflected as a delta in this method. |
+| COL_A_ONLY | Uses the data in Column A as the key. | This is the default behavior, where the data are unique at the row level with Col A holding the identifier. |
+| CONCATENATED_COLS | Uses user specified Columns to create a unique key. Specify the columns using a `List<int>` | Say you have participant data at multiple time points. You can generate a unique key by combining participant ID and date of visit to satisify the invariant of having a unique key for comparison. |
 
 ### Conduct Comparison
 

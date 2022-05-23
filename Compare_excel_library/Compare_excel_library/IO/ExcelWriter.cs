@@ -157,21 +157,26 @@ namespace Compare_excel_library.IO
                     foreach (string toImpute in colsNotPresent)
                     {
                         col = ColKey[toImpute];
-                        //Comments and hihglighting
-                        System.Drawing.Color color = System.Drawing.Color.LightYellow;
-                        string source = !_prioritizeSource ? "Comparison" : "Original";
-                        string commentText = $"Warning column was only found in {source};" +
-                               $" This cell doesn't have a value due to the column not existing.";
-                        try
+                        if (ws.Cells[row, col].Value == null)
                         {
 
-                            var comment = ws.Cells[row, col].AddComment(commentText, "KD");
-                            ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                            ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(color);
+                            //Comments and hihglighting
+                            System.Drawing.Color color = System.Drawing.Color.LightYellow;
+                            string source = !_prioritizeSource ? "Comparison" : "Original";
+                            string commentText = $"Warning column was only found in {source};" +
+                                   $" This cell doesn't have a value due to the column not existing.";
+                            try
+                            {
+
+                                var comment = ws.Cells[row, col].AddComment(commentText, "KD");
+                                ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                                ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(color);
+                            }
+                            catch (Exception e)
+                            {
+                            }
                         }
-                        catch (Exception e)
-                        {
-                        }
+
                     }
 
                     row++;
@@ -194,6 +199,10 @@ namespace Compare_excel_library.IO
             Dictionary<string, int> headersForSheet = new Dictionary<string, int>();
 
             headersForSheet.Add("KEY", col);
+            ws.Cells[row, col].Value = "KEY";
+            ws.Cells[row, col].Style.Font.Bold = true;
+
+            col++;
             HashSet<string> items = new HashSet<string>();
 
             //This prioritize the ORIGINAL's headers in the ordering
