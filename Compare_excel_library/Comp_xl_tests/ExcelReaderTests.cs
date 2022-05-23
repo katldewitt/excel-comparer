@@ -36,12 +36,20 @@ namespace Comp_xl_tests
                 datumString.ColKey,
                // datumDateTimeToday.ColKey
             };
-        List<string> concatenatedColKeys = new List<string>()
+        List<string> concatenatedColKeysOrig = new List<string>()
             {
                 "-" + numericInt.ColKey + "-" +  numericInt.Value.ToString(),
                 "-" + numericDouble.ColKey  + "-" + numericDouble.Value.ToString(),
                 "-" + datumBool.ColKey  + "-" + datumBool.Value.ToString(),
                "-" +  datumStringChanged.ColKey  + "-" + datumStringChanged.Value.ToString(),
+               // "-" + datumDateTimeTomorrow.ColKey  + "-" + ((DateTime)datumDateTimeTomorrow.Value).Subtract(new DateTime(1900, 1, 1)).TotalDays.ToString()
+            };
+        List<string> concatenatedColKeysComp = new List<string>()
+            {
+                "-" + numericInt.ColKey + "-" +  numericInt.Value.ToString(),
+                "-" + numericDouble.ColKey  + "-" + numericDouble.Value.ToString(),
+                "-" + datumBool.ColKey  + "-" + datumBool.Value.ToString(),
+               "-" +  datumString.ColKey  + "-" + datumString.Value.ToString(),
                // "-" + datumDateTimeTomorrow.ColKey  + "-" + ((DateTime)datumDateTimeTomorrow.Value).Subtract(new DateTime(1900, 1, 1)).TotalDays.ToString()
             };
         //Important: EPPlus is 1 indexed and our header is row 1, so we start at row 2 for numeric keys
@@ -110,7 +118,7 @@ namespace Comp_xl_tests
             }
         }
 
-        private void CommonTestsForReadin(Dictionary<string, ExcelSheetForComparison> orig, ExcelReader.ColKeyOptions keyOptions)
+        private void CommonTestsForReadin(Dictionary<string, ExcelSheetForComparison> orig, ExcelReader.ColKeyOptions keyOptions, bool comparisonSheet)
         {
             Assert.AreEqual(1, orig.Count, "There should only be 1 sheet in datastruct.");
 
@@ -130,7 +138,7 @@ namespace Comp_xl_tests
 
                     break;
                 case ExcelReader.ColKeyOptions.CONCATENATED_COLS:
-                    expectedKeys = concatenatedColKeys;
+                    expectedKeys = comparisonSheet ? concatenatedColKeysComp : concatenatedColKeysOrig;
                     break;
                 default:
                     break;
@@ -147,7 +155,11 @@ namespace Comp_xl_tests
             Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
                 ExcelReader.ColKeyOptions.COL_A_ONLY,
                 null);
-            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.COL_A_ONLY);
+            Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(true)),
+                ExcelReader.ColKeyOptions.COL_A_ONLY,
+                null);
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.COL_A_ONLY, false);
+            CommonTestsForReadin(comp, ExcelReader.ColKeyOptions.COL_A_ONLY, true);
             TearDownTests();
         }
         [TestMethod]
@@ -157,7 +169,11 @@ namespace Comp_xl_tests
             Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
                 ExcelReader.ColKeyOptions.CONCATENATED_COLS,
                 new List<int>() { 1, 2 });
-            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.CONCATENATED_COLS);
+            Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(true)),
+                ExcelReader.ColKeyOptions.CONCATENATED_COLS,
+                new List<int>() { 1, 2 });
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.CONCATENATED_COLS, false);
+            CommonTestsForReadin(comp, ExcelReader.ColKeyOptions.CONCATENATED_COLS, true);
             TearDownTests();
         }
         [TestMethod]
@@ -170,8 +186,8 @@ namespace Comp_xl_tests
             Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(true)),
                 ExcelReader.ColKeyOptions.ROW_NUMBER,
                 null);
-            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.ROW_NUMBER);
-            CommonTestsForReadin(comp, ExcelReader.ColKeyOptions.ROW_NUMBER);
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.ROW_NUMBER, false);
+            CommonTestsForReadin(comp, ExcelReader.ColKeyOptions.ROW_NUMBER, true);
             TearDownTests();
         }
     }
