@@ -26,12 +26,47 @@ namespace Comp_xl_tests
         //File set ups
         static string filepath = @"C:\Projects\excel-comparer\Compare_excel_library\assets\test";
         static string sheetname = "Sheet1";
+
+        //Expected keys
+        List<string> colAOnlyKeys = new List<string>()
+            {
+                numericInt.ColKey,
+                numericDouble.ColKey,
+                datumBool.ColKey,
+                datumString.ColKey,
+               // datumDateTimeToday.ColKey
+            };
+        List<string> concatenatedColKeys = new List<string>()
+            {
+                "-" + numericInt.ColKey + "-" +  numericInt.Value.ToString(),
+                "-" + numericDouble.ColKey  + "-" + numericDouble.Value.ToString(),
+                "-" + datumBool.ColKey  + "-" + datumBool.Value.ToString(),
+               "-" +  datumStringChanged.ColKey  + "-" + datumStringChanged.Value.ToString(),
+               // "-" + datumDateTimeTomorrow.ColKey  + "-" + ((DateTime)datumDateTimeTomorrow.Value).Subtract(new DateTime(1900, 1, 1)).TotalDays.ToString()
+            };
+        //Important: EPPlus is 1 indexed and our header is row 1, so we start at row 2 for numeric keys
+        List<string> rowNumberKeys = Enumerable.Range(2, 4).Select(x => x.ToString()).ToList();
+
+        //Excel Reader item
+        ExcelReader er = new ExcelReader();
         #endregion
 
+
+        private void SetUpTests()
+        {
+            GenerateTestExcel(true);
+            GenerateTestExcel(false);
+        }
+        private void TearDownTests()
+        {
+            File.Delete(Path.Combine(filepath, GetFileNameOrigOrComp(true)));
+            File.Delete(Path.Combine(filepath, GetFileNameOrigOrComp(false)));
+        }
         private string GetFileNameOrigOrComp(bool comparisonSheet)
         {
             return comparisonSheet ? "comparison.xlsx" : "original.xlsx";
         }
+
 
         private void GenerateTestExcel(bool comparisonSheet)
         {
@@ -75,16 +110,8 @@ namespace Comp_xl_tests
             }
         }
 
-        [TestMethod]
-        public void VerifyReadin_ColA()
+        private void CommonTestsForReadin(Dictionary<string, ExcelSheetForComparison> orig, ExcelReader.ColKeyOptions keyOptions)
         {
-            GenerateTestExcel(true);
-            GenerateTestExcel(false);
-
-            ExcelReader er = new ExcelReader();
-            Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
-                ExcelReader.ColKeyOptions.COL_A_ONLY,
-                null);
             Assert.AreEqual(1, orig.Count, "There should only be 1 sheet in datastruct.");
 
             //Check ExcelSheetForComparison struct
@@ -92,76 +119,60 @@ namespace Comp_xl_tests
             Assert.AreEqual(4, sheetToCheck.RowsOfData.Count, "There should be 4 rows of data in datastruct.");
             Assert.AreEqual(2, sheetToCheck.ColKeyLookup.Count, "There should be 2 cols of data in datastruct.");
 
-            //Check the expected values of the keys
-            List<string> colAOnlyKeys = new List<string>()
+            List<string> expectedKeys = new List<string>();
+            switch (keyOptions)
             {
-                numericInt.ColKey,
-                numericDouble.ColKey,
-                datumBool.ColKey,
-                datumString.ColKey,
-               // datumDateTimeToday.ColKey
-            };
-            Assert.IsTrue(Enumerable.SequenceEqual(colAOnlyKeys,
+                case ExcelReader.ColKeyOptions.ROW_NUMBER:
+                    expectedKeys = rowNumberKeys;
+                    break;
+                case ExcelReader.ColKeyOptions.COL_A_ONLY:
+                    expectedKeys = colAOnlyKeys;
+
+                    break;
+                case ExcelReader.ColKeyOptions.CONCATENATED_COLS:
+                    expectedKeys = concatenatedColKeys;
+                    break;
+                default:
+                    break;
+            }
+            Assert.IsTrue(Enumerable.SequenceEqual(expectedKeys,
                                             sheetToCheck.RowsOfData.Select(x => x.Key).ToList()),
-                          "The keys of the dataset should be the values in ColumnA.");
+                          "The keys of the dataset should match the expectation");
+        }
 
-
+        [TestMethod]
+        public void VerifyReadin_ColA()
+        {
+            SetUpTests();
+            Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
+                ExcelReader.ColKeyOptions.COL_A_ONLY,
+                null);
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.COL_A_ONLY);
+            TearDownTests();
         }
         [TestMethod]
         public void VerifyReadin_Concatenated()
         {
-            GenerateTestExcel(true);
-            GenerateTestExcel(false);
-
-
-            ExcelReader er = new ExcelReader();
+            SetUpTests();
             Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
                 ExcelReader.ColKeyOptions.CONCATENATED_COLS,
                 new List<int>() { 1, 2 });
-            Assert.AreEqual(1, orig.Count, "There should only be 1 sheet in datastruct.");
-
-            //Check ExcelSheetForComparison struct
-            ExcelSheetForComparison sheetToCheck = orig[sheetname];
-            Assert.AreEqual(4, sheetToCheck.RowsOfData.Count, "There should be 4 rows of data in datastruct.");
-            Assert.AreEqual(2, sheetToCheck.ColKeyLookup.Count, "There should be 2 cols of data in datastruct.");
-
-            //Check the expected values of the keys
-            List<string> concatenatedColKeys = new List<string>()
-            {
-                "-" + numericInt.ColKey + "-" +  numericInt.Value.ToString(),
-                "-" + numericDouble.ColKey  + "-" + numericDouble.Value.ToString(),
-                "-" + datumBool.ColKey  + "-" + datumBool.Value.ToString(),
-               "-" +  datumStringChanged.ColKey  + "-" + datumStringChanged.Value.ToString(),
-               // "-" + datumDateTimeTomorrow.ColKey  + "-" + ((DateTime)datumDateTimeTomorrow.Value).Subtract(new DateTime(1900, 1, 1)).TotalDays.ToString()
-            };
-            Assert.IsTrue(Enumerable.SequenceEqual(concatenatedColKeys,
-                                            sheetToCheck.RowsOfData.Select(x => x.Key).ToList()),
-                          "The keys of the dataset should be the values in ColumnA combined with ColumnB.");
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.CONCATENATED_COLS);
+            TearDownTests();
         }
         [TestMethod]
         public void VerifyReadin_RowNumber()
         {
-            GenerateTestExcel(true);
-            GenerateTestExcel(false);
-
-            ExcelReader er = new ExcelReader();
+            SetUpTests();
             Dictionary<string, ExcelSheetForComparison> orig = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(false)),
                 ExcelReader.ColKeyOptions.ROW_NUMBER,
                 null);
-            Assert.AreEqual(1, orig.Count, "There should only be 1 sheet in datastruct.");
-
-            //Check ExcelSheetForComparison struct
-            ExcelSheetForComparison sheetToCheck = orig[sheetname];
-            Assert.AreEqual(4, sheetToCheck.RowsOfData.Count, "There should be 4 rows of data in datastruct.");
-            Assert.AreEqual(2, sheetToCheck.ColKeyLookup.Count, "There should be 2 cols of data in datastruct.");
-
-            //Check the expected values of the keys
-            //Important: EPPlus is 1 indexed and our header is row 1, so we start at row 2
-            List<string> rowNumberKeys = Enumerable.Range(2, 4).Select(x => x.ToString()).ToList();
-            Assert.IsTrue(Enumerable.SequenceEqual(rowNumberKeys,
-                                            sheetToCheck.RowsOfData.Select(x => x.Key).ToList()),
-                          "The keys of the dataset should be strings 2 - 5");
+            Dictionary<string, ExcelSheetForComparison> comp = er.ReadEntireExcel(Path.Combine(filepath, GetFileNameOrigOrComp(true)),
+                ExcelReader.ColKeyOptions.ROW_NUMBER,
+                null);
+            CommonTestsForReadin(orig, ExcelReader.ColKeyOptions.ROW_NUMBER);
+            CommonTestsForReadin(comp, ExcelReader.ColKeyOptions.ROW_NUMBER);
+            TearDownTests();
         }
-
     }
 }
